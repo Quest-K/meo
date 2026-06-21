@@ -1,94 +1,595 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>취재시작 | 제보부터 해결까지</title>
+    <title>취재시작 | 대한민국 민원 해결 및 공익신고 플랫폼</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+    <style>
+        :root{
+            --ink:#161B2C; --ink-soft:#232A40;
+            --paper:#F2F0E8; --paper-dim:#EAE6D8;
+            --line:#D9D3C2; --line-dark:rgba(242,240,232,0.14);
+            --stamp:#B23B2C; --stamp-dark:#8F2E22;
+            --seal:#2C4F82;
+            --slate:#5B5650;
+        }
+        body{ font-family:'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Noto Sans KR', sans-serif; background:var(--paper); color:var(--ink); }
+        section{ min-height:100vh; padding-top:6.5rem; }
+        .mono{ font-family: ui-monospace, 'SF Mono', 'Roboto Mono', monospace; }
+        .case-number{ font-family: ui-monospace, 'SF Mono', 'Roboto Mono', monospace; font-size:.7rem; letter-spacing:.08em; color:var(--stamp); font-weight:700; text-transform:uppercase; }
+        .report-type-active{ border-color:var(--stamp); background-color:rgba(178,59,44,0.06); }
+        .stamp-badge{
+            display:inline-flex; align-items:center; gap:.3rem;
+            border:2px solid var(--stamp); color:var(--stamp); background:rgba(178,59,44,0.05);
+            padding:.3rem .85rem; font-weight:800; font-size:.7rem; letter-spacing:.04em;
+            transform:rotate(-3deg); position:relative; white-space:nowrap;
+        }
+        .stamp-badge::after{ content:""; position:absolute; inset:3px; border:1px solid var(--stamp); opacity:.45; pointer-events:none; }
+        @media (prefers-reduced-motion: no-preference){
+            .fade-up{ animation: fadeUp .6s ease both; }
+        }
+        @keyframes fadeUp{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
+        /* 헤더 표시/숨김은 Tailwind 런타임 컴파일과 무관하게 항상 즉시 적용되도록 순수 CSS로 고정 */
+        .desktop-nav{ display:none; }
+        .menu-btn{ display:inline-flex; }
+        .mobile-menu{ display:none; }
+        .mobile-menu.is-open{ display:block; }
+        @media (min-width:768px){
+            .desktop-nav{ display:flex; }
+            .menu-btn{ display:none; }
+            .mobile-menu{ display:none !important; }
+        }
+        /* 시각 요소: 아이콘 원형 / 단계 연결선 / 로드맵 타임라인 */
+        .icon-circle{
+            width:3rem; height:3rem; border-radius:9999px;
+            display:flex; align-items:center; justify-content:center;
+            font-size:1.05rem; margin-bottom:.85rem;
+        }
+        .flow-step{ position:relative; }
+        @media (min-width:768px){
+            .flow-step:not(:first-child)::before{
+                content:"\2192"; position:absolute; left:-1.65rem; top:2.6rem;
+                color:var(--stamp); font-size:1.3rem; font-weight:700; line-height:1;
+            }
+        }
+        .timeline-item{ position:relative; padding-left:4.5rem; margin-bottom:2rem; }
+        .timeline-item:not(:last-child)::after{
+            content:""; position:absolute; left:1.55rem; top:3.5rem; bottom:-2rem;
+            width:2px; background:var(--line);
+        }
+        .timeline-icon{
+            position:absolute; left:0; top:0; width:3.25rem; height:3.25rem; border-radius:9999px;
+            background:var(--stamp); color:var(--paper); display:flex; align-items:center; justify-content:center; font-size:1.1rem;
+        }
+        /* 공지 배너 + 헤더 고정 위치: Tailwind 컴파일 지연과 무관하게 항상 즉시 적용 */
+        .announce-bar{
+            position:fixed; top:0; left:0; width:100%; z-index:50; height:2rem;
+            display:flex; align-items:center; justify-content:center;
+            overflow:hidden; white-space:nowrap; box-sizing:border-box; padding:0 1rem;
+        }
+        .announce-bar .announce-text{
+            overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline-block; max-width:90%; vertical-align:middle;
+        }
+        .site-header{ position:fixed; top:2rem; left:0; width:100%; z-index:40; box-sizing:border-box; }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans">
+<body>
 
-    <!-- Header (상단바) -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <!-- 상단 공지 배너 -->
+    <div class="announce-bar text-xs font-bold" style="background:var(--stamp); color:var(--paper);">
+        <i class="fa-solid fa-bolt mr-1.5 shrink-0"></i>
+        <span class="announce-text">AI 분석은 항상 무료&nbsp;·&nbsp;공익신고 보상금 최대 30억원&nbsp;·&nbsp;행정사 작업비는 항목별로 투명하게 공개</span>
+    </div>
+
+    <!-- Header -->
+    <header class="site-header shadow-sm" style="background:var(--ink); border-bottom:1px solid var(--line-dark);">
         <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-            <span class="text-2xl font-black text-blue-600">취재시작</span>
-            <nav class="hidden md:flex space-x-6 text-sm font-bold text-gray-600">
-                <a href="#process" class="hover:text-blue-600">진행 과정</a>
-                <a href="#report-form" class="hover:text-blue-600">익명 제보하기</a>
+            <span class="text-xl font-black tracking-tight" style="color:var(--stamp);">취재시작</span>
+
+            <!-- 데스크탑 내비게이션 -->
+            <nav class="desktop-nav space-x-6 text-sm font-bold">
+                <a href="#home" class="text-white/70 hover:text-white transition">홈</a>
+                <a href="#process" class="text-white/70 hover:text-white transition">진행 단계</a>
+                <a href="#pricing" class="text-white/70 hover:text-white transition">요금안내</a>
+                <a href="#roadmap" class="text-white/70 hover:text-white transition">로드맵</a>
+                <a href="#faq" class="text-white/70 hover:text-white transition">자주 묻는 질문</a>
+                <a href="#report" class="transition underline" style="color:var(--stamp);">제보하기</a>
+            </nav>
+
+            <!-- 모바일 메뉴 버튼 (인라인 SVG: 아이콘 폰트 로딩 지연과 무관하게 즉시 렌더링) -->
+            <button id="menuBtn" class="menu-btn items-center justify-center text-white" aria-label="메뉴 열기" aria-expanded="false" style="width:1.75rem;height:1.75rem;">
+                <svg id="menuIconBars" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                <svg id="menuIconClose" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none;"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
+            </button>
+        </div>
+
+        <!-- 모바일 드롭다운 -->
+        <div id="mobileMenu" class="mobile-menu" style="background:var(--ink); border-top:1px solid var(--line-dark);">
+            <nav class="flex flex-col px-4 py-3 space-y-3 text-sm font-bold">
+                <a href="#home" class="py-1 text-white/85">홈</a>
+                <a href="#process" class="py-1 text-white/85">진행 단계</a>
+                <a href="#pricing" class="py-1 text-white/85">요금안내</a>
+                <a href="#roadmap" class="py-1 text-white/85">로드맵</a>
+                <a href="#faq" class="py-1 text-white/85">자주 묻는 질문</a>
+                <a href="#report" class="py-1" style="color:var(--stamp);">제보하기</a>
             </nav>
         </div>
     </header>
 
-    <!-- 프로세스 안내 섹션 (4단계) -->
-    <section id="process" class="py-16 max-w-5xl mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-12">제보 후, 이렇게 해결됩니다</h2>
-        <div class="grid md:grid-cols-4 gap-6">
-            <!-- 1단계 -->
-            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm relative">
-                <div class="text-blue-600 font-bold mb-2">STEP 1</div>
-                <h4 class="font-bold mb-2">AI 제보 분석</h4>
-                <p class="text-sm text-gray-600">내용 분석 및 증거 검토 후 카테고리 분류</p>
+    <!-- 1. 홈 -->
+    <section id="home" class="flex items-center justify-center px-4" style="background:var(--ink); color:var(--paper);">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-10 text-center md:text-left">
+            <div class="flex-1">
+                <p class="case-number mb-4 fade-up" id="caseDate">CASE NO. 2026-0621</p>
+                <h1 class="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight fade-up" style="animation-delay:.05s;">취재가 시작되면<br><span style="color:var(--stamp);">업무 처리가 시작됩니다</span></h1>
+                <p class="text-lg mb-8 max-w-lg mx-auto md:mx-0 fade-up" style="color:rgba(242,240,232,0.7); animation-delay:.1s;">행정사, 탐사 기자, 변호사가 협업하여 당신의 억울함을 해결하고 정의를 구현합니다.</p>
+                <div class="flex flex-col sm:flex-row gap-3 justify-center md:justify-start fade-up" style="animation-delay:.15s;">
+                    <a href="#report" class="px-8 py-4 rounded-md font-bold transition shadow-lg" style="background:var(--stamp); color:var(--paper);" onmouseover="this.style.background='var(--stamp-dark)'" onmouseout="this.style.background='var(--stamp)'">지금 바로 시작하기</a>
+                    <a href="#pricing" class="px-8 py-4 rounded-md font-bold transition border" style="border-color:rgba(242,240,232,0.3); color:var(--paper);">요금 먼저 보기</a>
+                </div>
             </div>
-            <!-- 2단계 -->
-            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                <div class="text-blue-600 font-bold mb-2">STEP 2</div>
-                <h4 class="font-bold mb-2">전문가 매칭</h4>
-                <p class="text-sm text-gray-600">탐사 기자(취재) 및 변호사(신고 대리) 연결</p>
-            </div>
-            <!-- 3단계 -->
-            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                <div class="text-blue-600 font-bold mb-2">STEP 3</div>
-                <h4 class="font-bold mb-2">공식 접수</h4>
-                <p class="text-sm text-gray-600">지자체 민원 및 권익위 공익신고 공식 전달</p>
-            </div>
-            <!-- 4단계 -->
-            <div class="bg-blue-600 text-white p-6 rounded-xl shadow-lg">
-                <div class="text-blue-100 font-bold mb-2">STEP 4</div>
-                <h4 class="font-bold mb-2">처리 압박 및 결과</h4>
-                <p class="text-sm">의원실 질의 및 보도를 통한 빠른 처리 촉구</p>
+            <div class="flex-1 flex justify-center fade-up" style="animation-delay:.2s;">
+                <svg viewBox="0 0 260 260" class="w-56 md:w-72" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="접수 완료 도장이 찍힌 서류 일러스트">
+                    <g transform="rotate(-4 120 125)">
+                        <rect x="40" y="20" width="160" height="210" rx="10" fill="#F2F0E8"/>
+                        <rect x="60" y="50" width="120" height="10" rx="2" fill="#D9D3C2"/>
+                        <rect x="60" y="72" width="120" height="10" rx="2" fill="#D9D3C2"/>
+                        <rect x="60" y="94" width="80" height="10" rx="2" fill="#D9D3C2"/>
+                        <rect x="60" y="130" width="120" height="8" rx="2" fill="#D9D3C2" opacity=".6"/>
+                        <rect x="60" y="148" width="120" height="8" rx="2" fill="#D9D3C2" opacity=".6"/>
+                        <rect x="60" y="166" width="90" height="8" rx="2" fill="#D9D3C2" opacity=".6"/>
+                    </g>
+                    <g transform="rotate(16 178 178)">
+                        <circle cx="178" cy="178" r="44" fill="none" stroke="#B23B2C" stroke-width="4"/>
+                        <circle cx="178" cy="178" r="34" fill="none" stroke="#B23B2C" stroke-width="2"/>
+                        <text x="178" y="173" text-anchor="middle" fill="#B23B2C" font-size="15" font-weight="800" font-family="ui-monospace, monospace">접수</text>
+                        <text x="178" y="190" text-anchor="middle" fill="#B23B2C" font-size="10" font-weight="700" font-family="ui-monospace, monospace">완료</text>
+                    </g>
+                </svg>
             </div>
         </div>
     </section>
 
-    <!-- 제보 폼 -->
-    <section id="report-form" class="py-16 max-w-xl mx-auto px-4">
-        <div class="bg-white p-8 rounded-2xl border border-gray-200 shadow-xl">
-            <h2 class="text-2xl font-bold mb-6 text-center">불편사항 익명 제보</h2>
+    <!-- 신뢰 요소 스트립 -->
+    <div class="bg-white border-b" style="border-color:var(--line);">
+        <div class="max-w-5xl mx-auto px-4 py-6 flex flex-wrap justify-center gap-x-8 gap-y-3 text-center">
+            <div class="flex items-center gap-2 text-sm font-bold" style="color:var(--ink);"><i class="fa-solid fa-lock" style="color:var(--stamp);"></i>암호화된 익명 제보</div>
+            <div class="flex items-center gap-2 text-sm font-bold" style="color:var(--ink);"><i class="fa-solid fa-id-card" style="color:var(--stamp);"></i>등록 행정사 매칭</div>
+            <div class="flex items-center gap-2 text-sm font-bold" style="color:var(--ink);"><i class="fa-solid fa-scale-balanced" style="color:var(--stamp);"></i>변호사 연계 보상</div>
+            <div class="flex items-center gap-2 text-sm font-bold" style="color:var(--ink);"><i class="fa-solid fa-newspaper" style="color:var(--stamp);"></i>언론 공론화</div>
+        </div>
+    </div>
+
+    <!-- 2. 진행 프로세스 -->
+    <section id="process" class="flex flex-col justify-center max-w-5xl mx-auto px-4">
+        <p class="case-number text-center mb-3">CASE FLOW · 4 STEPS</p>
+        <h2 class="text-3xl font-bold text-center mb-2">제보 후, 이렇게 해결됩니다</h2>
+        <p class="text-center mb-12 text-sm" style="color:var(--slate);">STEP 1은 무료입니다. 실제 비용은 STEP 2 매칭 시 사전 안내됩니다.</p>
+        <div class="grid md:grid-cols-4 gap-6">
+            <div class="flow-step bg-white p-6 rounded-md border" style="border-color:var(--line);">
+                <div class="icon-circle" style="background:rgba(178,59,44,0.08); color:var(--stamp);"><i class="fa-solid fa-magnifying-glass"></i></div>
+                <div class="case-number mb-2">STEP 1 · 무료</div>
+                <h4 class="font-bold mb-2">AI 제보 분석</h4>
+                <p class="text-sm" style="color:var(--slate);">AI가 증거의 효력을 판단하고 관련 행정/법률 카테고리를 분류합니다.</p>
+            </div>
+            <div class="flow-step bg-white p-6 rounded-md border" style="border-color:var(--line);">
+                <div class="icon-circle" style="background:rgba(178,59,44,0.08); color:var(--stamp);"><i class="fa-solid fa-handshake"></i></div>
+                <div class="case-number mb-2">STEP 2</div>
+                <h4 class="font-bold mb-2">전문가 매칭</h4>
+                <p class="text-sm" style="color:var(--slate);">민원 해결을 위한 행정사 및 탐사 보도를 위한 기자가 매칭됩니다.</p>
+            </div>
+            <div class="flow-step bg-white p-6 rounded-md border" style="border-color:var(--line);">
+                <div class="icon-circle" style="background:rgba(178,59,44,0.08); color:var(--stamp);"><i class="fa-solid fa-stamp"></i></div>
+                <div class="case-number mb-2">STEP 3</div>
+                <h4 class="font-bold mb-2">공식 접수</h4>
+                <p class="text-sm" style="color:var(--slate);">지자체 민원실 및 권익위 공익신고 공식 채널에 서류가 전달됩니다.</p>
+            </div>
+            <div class="flow-step p-6 rounded-md shadow-lg" style="background:var(--stamp); color:var(--paper);">
+                <div class="icon-circle" style="background:rgba(242,240,232,0.18); color:var(--paper);"><i class="fa-solid fa-bullhorn"></i></div>
+                <div class="case-number mb-2" style="color:rgba(242,240,232,0.85);">STEP 4</div>
+                <h4 class="font-bold mb-2">처리 압박 및 해결</h4>
+                <p class="text-sm">의원실 질의 및 보도 공론화를 통해 지연된 업무의 처리를 촉구합니다.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. 요금안내 -->
+    <section id="pricing" class="flex flex-col justify-center max-w-5xl mx-auto px-4" style="background:var(--paper-dim);">
+        <p class="case-number text-center mb-3">PRICING · FEE SCHEDULE</p>
+        <h2 class="text-3xl font-bold text-center mb-2">서류 작성 · 접수 대행 요금</h2>
+        <p class="text-center mb-8 text-sm" style="color:var(--slate);">모든 비용은 <strong>행정사 작업비 + 플랫폼 운영비</strong>로 항목을 나눠 투명하게 안내합니다. 카드를 선택하면 제보 폼에 자동으로 반영됩니다.</p>
+
+        <!-- 무료 셀프가이드 -->
+        <div class="bg-white border-2 border-dashed rounded-md p-6 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4" style="border-color:var(--ink); border-opacity:.25;">
+            <div>
+                <span class="inline-block text-xs font-bold px-3 py-1 rounded-sm mb-2" style="background:var(--ink); color:var(--paper);">완전 무료</span>
+                <h3 class="font-bold text-lg mb-1 flex items-center gap-2"><i class="fa-solid fa-route" style="color:var(--ink);"></i>AI 셀프 진행 가이드</h3>
+                <p class="text-sm" style="color:var(--slate);">행정사 도움 없이 직접 진행하고 싶다면, AI가 사연을 분석해 필요한 서류 목록 · 제출 기관 · 작성 시 주의사항을 무료로 안내합니다. 작성과 제출은 본인이 직접 진행합니다.</p>
+            </div>
+            <a href="#report" onclick="selectPlan('guide','무료 셀프가이드','0원')" class="whitespace-nowrap px-6 py-3 rounded-md font-bold text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2" style="background:var(--ink); color:var(--paper); --tw-ring-color:var(--seal);">무료로 확인하기</a>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6 mb-6">
+            <!-- 라이트 -->
+            <div class="bg-white p-6 rounded-md border flex flex-col" style="border-color:var(--line);">
+                <h3 class="font-bold text-lg mb-1 flex items-center gap-2"><i class="fa-solid fa-pen-to-square" style="color:var(--stamp);"></i>라이트</h3>
+                <p class="text-xs mb-4" style="color:var(--slate);">행정사 검토 · 셀프 제출</p>
+                <div class="text-3xl font-black mb-1">34,000<span class="text-sm font-bold" style="color:var(--slate);">원</span></div>
+                <div class="mb-4">
+                    <div class="flex h-2 rounded-full overflow-hidden mb-1.5" style="background:var(--line);">
+                        <div style="width:74%; background:var(--ink);"></div>
+                        <div style="width:26%; background:var(--stamp);"></div>
+                    </div>
+                    <div class="flex justify-between text-[11px] mono" style="color:var(--slate);">
+                        <span><i class="fa-solid fa-circle" style="color:var(--ink); font-size:6px;"></i> 행정사 25,000원</span>
+                        <span>운영비 9,000원 <i class="fa-solid fa-circle" style="color:var(--stamp); font-size:6px;"></i></span>
+                    </div>
+                </div>
+                <ul class="text-sm space-y-2 mb-6 flex-1" style="color:var(--slate);">
+                    <li><i class="fa-solid fa-check mr-2" style="color:var(--stamp);"></i>AI 분석 리포트</li>
+                    <li><i class="fa-solid fa-check mr-2" style="color:var(--stamp);"></i>행정사 1차 검토 및 첨삭</li>
+                    <li><i class="fa-solid fa-check mr-2" style="color:var(--stamp);"></i>제출 가이드 PDF</li>
+                    <li class="opacity-50"><i class="fa-solid fa-xmark mr-2"></i>접수 대행 (직접 제출)</li>
+                </ul>
+                <a href="#report" onclick="selectPlan('lite','라이트','34,000원')" class="text-center py-3 rounded-md font-bold text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2" style="background:var(--ink); color:var(--paper); --tw-ring-color:var(--seal);">선택하기</a>
+            </div>
+
+            <!-- 스탠다드 (추천) -->
+            <div class="bg-white p-6 rounded-md border-2 flex flex-col relative shadow-lg" style="border-color:var(--stamp);">
+                <span class="stamp-badge absolute -top-4 left-6">추천</span>
+                <h3 class="font-bold text-lg mb-1 mt-2 flex items-center gap-2"><i class="fa-solid fa-star" style="color:var(--stamp);"></i>스탠다드</h3>
+                <p class="text-xs mb-4" style="color:var(--slate);">행정사 작성 + 접수 대행 · 단일 기관</p>
+                <div class="text-3xl font-black mb-1">140,000<span class="text-sm font-bold" style="color:var(--slate);">원</span></div>
+                <div class="mb-4">
+                    <div class="flex h-2 rounded-full overflow-hidden mb-1.5" style="background:var(--line);">
+                        <div style="width:82%; background:var(--ink);"></div>
+                        <div style="width:18%; background:var(--stamp);"></div>
+                    </div>
+                    <div class="flex justify-between text-[11px] mono" style="color:var(--slate);">
+                        <span><i class="fa-solid fa-circle" style="color:var(--ink); font-size:6px;"></i> 행정사 115,000원</span>
+                        <span>운영비 25,000원 <i class="fa-solid fa-circle" style="color:var(--stamp); font-size:6px;"></i></span>
+                    </div>
+                </div>
+                <ul class="text-sm space-y-2 mb-6 flex-1" style="color:var(--slate);">
+                    <li><i class="fa-solid fa-check mr-2" style="color:var(--stamp);"></i>담당 행정사 직접 작성</li>
+                    <li><i class="fa-solid fa-check mr-2" style="color:var(--stamp);"></i>기관 접수 대행</li>
+                    <li><i class="fa-solid fa-check mr-2" style="color:var(--stamp);"></i>1회 수정 포함</li>
+                    <li><i class="fa-solid fa-check mr-2" style="color:var(--stamp);"></i>진행 상황 알림</li>
+                </ul>
+                <a href="#report" onclick="selectPlan('standard','스탠다드','140,000원')" class="text-center py-3 rounded-md font-bold text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2" style="background:var(--stamp); color:var(--paper); --tw-ring-color:var(--seal);">선택하기</a>
+            </div>
+
+            <!-- 프로 -->
+            <div class="bg-white p-6 rounded-md border flex flex-col" style="border-color:var(--line);">
+                <h3 class="font-bold text-lg mb-1 flex items-center gap-2"><i class="fa-solid fa-shield-halved" style="color:var(--stamp);"></i>프로</h3>
+                <p class="text-xs mb-4" style="color:var(--slate);">복합 사건 · 다수 기관 동시 대응</p>
+                <div class="text-3xl font-black mb-1">250,000<span class="text-sm font-bold" style="color:var(--slate);">원~</span></div>
+                <div class="mb-4">
+                    <div class="flex h-2 rounded-full overflow-hidden mb-1.5" style="background:var(--line);">
+                        <div style="width:85%; background:var(--ink);"></div>
+                        <div style="width:15%; background:var(--stamp);"></div>
+                    </div>
+                    <div class="flex justify-between text-[11px] mono" style="color:var(--slate);">
+                        <span><i class="fa-solid fa-circle" style="color:var(--ink); font-size:6px;"></i> 행정사 사건별 산정</span>
+                        <span>운영비 15% <i class="fa-solid fa-circle" style="color:var(--stamp); font-size:6px;"></i></span>
+                    </div>
+                </div>
+                <ul class="text-sm space-y-2 mb-6 flex-1" style="color:var(--slate);">
+                    <li><i class="fa-solid fa-check mr-2" style="color:var(--stamp);"></i>전담 행정사 배정</li>
+                    <li><i class="fa-solid fa-check mr-2" style="color:var(--stamp);"></i>다기관 동시 접수</li>
+                    <li><i class="fa-solid fa-check mr-2" style="color:var(--stamp);"></i>의원실 질의 연계 옵션</li>
+                    <li><i class="fa-solid fa-check mr-2" style="color:var(--stamp);"></i>2회 수정 + 결과 리포트</li>
+                </ul>
+                <a href="#report" onclick="selectPlan('pro','프로','250,000원~ (상담 후 확정)')" class="text-center py-3 rounded-md font-bold text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2" style="background:var(--ink); color:var(--paper); --tw-ring-color:var(--seal);">상담 신청</a>
+            </div>
+        </div>
+
+        <!-- 공익신고 트랙 -->
+        <div class="bg-white border-2 rounded-md p-6 flex flex-col md:flex-row md:items-center justify-between gap-4" style="border-color:var(--seal);">
+            <div>
+                <h3 class="font-bold text-lg mb-1 flex items-center gap-2"><i class="fa-solid fa-scale-balanced" style="color:var(--seal);"></i>공익신고 (보상금) 트랙</h3>
+                <p class="text-sm" style="color:var(--slate);">착수금 없음 · 변호사 연계 성공보수제. 보상금 확정 시에만 비용이 발생하며, 비율은 사건 접수 전 서면으로 사전 안내됩니다.</p>
+            </div>
+            <a href="#report" onclick="selectPlan('reward','공익신고 트랙','착수금 없음 · 성공보수제')" class="whitespace-nowrap px-6 py-3 rounded-md font-bold text-sm transition border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2" style="border-color:var(--seal); color:var(--seal); --tw-ring-color:var(--seal);" onmouseover="this.style.background='var(--seal)';this.style.color='var(--paper)'" onmouseout="this.style.background='transparent';this.style.color='var(--seal)'">무료 상담 신청</a>
+        </div>
+        <p class="text-xs mt-4 text-center" style="color:var(--slate);">모든 금액은 부가세 별도이며, 접수 전 취소 시 100% 환불됩니다. 접수 후 취소는 진행 단계에 따라 부분 환불됩니다. 행정사 작업비는 매칭된 행정사에게 전액 정산됩니다.</p>
+
+        <!-- 직접신고 대비 비교 -->
+        <div class="mt-10">
+            <p class="case-number text-center mb-3">VS · 권익위 직접신고</p>
+            <h3 class="text-xl font-bold text-center mb-6">왜 직접신고 대신 취재시작인가요?</h3>
+            <div class="bg-white border rounded-md overflow-hidden" style="border-color:var(--line);">
+                <div class="grid grid-cols-3 text-xs font-bold text-center">
+                    <div class="p-3 text-left pl-4" style="background:var(--paper-dim);">비교 항목</div>
+                    <div class="p-3" style="background:var(--paper-dim); color:var(--slate);">권익위 직접신고</div>
+                    <div class="p-3" style="background:var(--ink); color:var(--paper);">취재시작</div>
+                </div>
+                <div class="grid grid-cols-3 text-xs text-center border-t" style="border-color:var(--line);">
+                    <div class="p-3 text-left pl-4" style="color:var(--slate);">서류 작성 지원</div>
+                    <div class="p-3"><i class="fa-solid fa-xmark" style="color:var(--slate); opacity:.5;"></i></div>
+                    <div class="p-3"><i class="fa-solid fa-check" style="color:var(--stamp);"></i></div>
+                </div>
+                <div class="grid grid-cols-3 text-xs text-center border-t" style="border-color:var(--line);">
+                    <div class="p-3 text-left pl-4" style="color:var(--slate);">처리 지연 시 압박 수단</div>
+                    <div class="p-3"><i class="fa-solid fa-xmark" style="color:var(--slate); opacity:.5;"></i></div>
+                    <div class="p-3"><i class="fa-solid fa-check" style="color:var(--stamp);"></i></div>
+                </div>
+                <div class="grid grid-cols-3 text-xs text-center border-t" style="border-color:var(--line);">
+                    <div class="p-3 text-left pl-4" style="color:var(--slate);">언론 공론화 연계</div>
+                    <div class="p-3"><i class="fa-solid fa-xmark" style="color:var(--slate); opacity:.5;"></i></div>
+                    <div class="p-3"><i class="fa-solid fa-check" style="color:var(--stamp);"></i></div>
+                </div>
+                <div class="grid grid-cols-3 text-xs text-center border-t" style="border-color:var(--line);">
+                    <div class="p-3 text-left pl-4" style="color:var(--slate);">보상금 신청 대리(변호사)</div>
+                    <div class="p-3" style="color:var(--slate);">본인 진행</div>
+                    <div class="p-3"><i class="fa-solid fa-check" style="color:var(--stamp);"></i></div>
+                </div>
+                <div class="grid grid-cols-3 text-xs text-center border-t" style="border-color:var(--line);">
+                    <div class="p-3 text-left pl-4" style="color:var(--slate);">비용</div>
+                    <div class="p-3" style="color:var(--slate);">무료</div>
+                    <div class="p-3" style="color:var(--slate);">무료 가이드 또는 선택형 유료</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. 로드맵 -->
+    <section id="roadmap" class="flex flex-col justify-center max-w-4xl mx-auto px-4">
+        <p class="case-number text-center mb-3">ROADMAP</p>
+        <h2 class="text-3xl font-bold text-center mb-12">대한민국 민원 해결 플랫폼 로드맵</h2>
+        <div>
+            <div class="timeline-item">
+                <div class="timeline-icon"><i class="fa-solid fa-file-circle-check"></i></div>
+                <div class="p-6 bg-white rounded-md border" style="border-color:var(--line);">
+                    <span class="case-number">PHASE 01</span>
+                    <h3 class="font-bold text-xl mt-1">행정 민원 최적화 (현재)</h3>
+                    <p style="color:var(--slate);">행정사와 연계한 민원 서류 작성 및 온라인 제출 대행을 통한 빠른 행정 서비스 개선.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-icon"><i class="fa-solid fa-coins"></i></div>
+                <div class="p-6 bg-white rounded-md border" style="border-color:var(--line);">
+                    <span class="case-number">PHASE 02</span>
+                    <h3 class="font-bold text-xl mt-1">공익신고 보상 생태계 (확장)</h3>
+                    <p style="color:var(--slate);">변호사 파트너십을 통한 부패/보조금 신고 대리 및 최대 30억 보상금 수령 지원.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-icon"><i class="fa-solid fa-network-wired"></i></div>
+                <div class="p-6 bg-white rounded-md border" style="border-color:var(--line);">
+                    <span class="case-number">PHASE 03</span>
+                    <h3 class="font-bold text-xl mt-1">디지털 민원 중재 센터 (비전)</h3>
+                    <p style="color:var(--slate);">전국 지역구 의원 데이터 연동 및 실시간 업무 태만 모니터링 시스템 구축.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. FAQ -->
+    <section id="faq" class="flex flex-col justify-center max-w-3xl mx-auto px-4" style="background:var(--paper-dim);">
+        <p class="case-number text-center mb-3">FAQ</p>
+        <h2 class="text-3xl font-bold text-center mb-12">자주 묻는 질문</h2>
+        <div class="space-y-3">
+            <details class="bg-white border rounded-md p-5 group" style="border-color:var(--line);">
+                <summary class="font-bold cursor-pointer flex items-center gap-3">
+                    <i class="fa-solid fa-rotate-left w-4 text-center" style="color:var(--stamp);"></i>
+                    <span class="flex-1">환불은 어떻게 되나요?</span>
+                    <i class="fa-solid fa-chevron-down text-sm group-open:rotate-180 transition" style="color:var(--stamp);"></i>
+                </summary>
+                <p class="text-sm mt-3" style="color:var(--slate);">기관 접수 전 취소 시 결제 금액의 100%를 환불합니다. 접수가 완료된 이후에는 진행된 작업 단계에 비례하여 부분 환불됩니다.</p>
+            </details>
+            <details class="bg-white border rounded-md p-5 group" style="border-color:var(--line);">
+                <summary class="font-bold cursor-pointer flex items-center gap-3">
+                    <i class="fa-solid fa-gift w-4 text-center" style="color:var(--stamp);"></i>
+                    <span class="flex-1">셀프로 진행하면 정말 무료인가요?</span>
+                    <i class="fa-solid fa-chevron-down text-sm group-open:rotate-180 transition" style="color:var(--stamp);"></i>
+                </summary>
+                <p class="text-sm mt-3" style="color:var(--slate);">네, AI가 사연을 분석해 필요한 서류 목록과 제출 기관, 작성 시 주의사항을 무료로 안내합니다. 다만 서류 작성과 기관 제출은 본인이 직접 진행해야 합니다. 행정사의 작성·검토·접수 대행이 필요하면 라이트/스탠다드/프로 플랜을 선택하시면 됩니다.</p>
+            </details>
+            <details class="bg-white border rounded-md p-5 group" style="border-color:var(--line);">
+                <summary class="font-bold cursor-pointer flex items-center gap-3">
+                    <i class="fa-solid fa-tags w-4 text-center" style="color:var(--stamp);"></i>
+                    <span class="flex-1">가격이 행정사 작업비와 플랫폼 운영비로 나뉘는 이유는요?</span>
+                    <i class="fa-solid fa-chevron-down text-sm group-open:rotate-180 transition" style="color:var(--stamp);"></i>
+                </summary>
+                <p class="text-sm mt-3" style="color:var(--slate);">행정사 작업비는 서류 작성·검토·접수에 들인 실제 업무에 대해 행정사에게 전액 정산되는 비용입니다. 플랫폼 운영비는 매칭, 진행 모니터링, 처리 지연 시 압박(의원실 질의 등)에 사용됩니다. 두 항목을 분리해 보여드리는 이유는 비용이 어디에 쓰이는지 명확히 알려드리기 위함입니다.</p>
+            </details>
+            <details class="bg-white border rounded-md p-5 group" style="border-color:var(--line);">
+                <summary class="font-bold cursor-pointer flex items-center gap-3">
+                    <i class="fa-solid fa-clock w-4 text-center" style="color:var(--stamp);"></i>
+                    <span class="flex-1">처리 기간은 얼마나 걸리나요?</span>
+                    <i class="fa-solid fa-chevron-down text-sm group-open:rotate-180 transition" style="color:var(--stamp);"></i>
+                </summary>
+                <p class="text-sm mt-3" style="color:var(--slate);">AI 분석은 24시간 이내, 행정사 매칭 및 서류 작성은 영업일 기준 3~5일 내 완료됩니다. 복합 사건(프로 플랜)은 사건 난이도에 따라 별도 안내됩니다.</p>
+            </details>
+            <details class="bg-white border rounded-md p-5 group" style="border-color:var(--line);">
+                <summary class="font-bold cursor-pointer flex items-center gap-3">
+                    <i class="fa-solid fa-lock w-4 text-center" style="color:var(--stamp);"></i>
+                    <span class="flex-1">제보 내용은 비밀이 보장되나요?</span>
+                    <i class="fa-solid fa-chevron-down text-sm group-open:rotate-180 transition" style="color:var(--stamp);"></i>
+                </summary>
+                <p class="text-sm mt-3" style="color:var(--slate);">모든 제보는 암호화되어 저장되며, 제보자의 신원은 본인 동의 없이 제3자(기관, 언론 포함)에 공개되지 않습니다.</p>
+            </details>
+            <details class="bg-white border rounded-md p-5 group" style="border-color:var(--line);">
+                <summary class="font-bold cursor-pointer flex items-center gap-3">
+                    <i class="fa-solid fa-trophy w-4 text-center" style="color:var(--stamp);"></i>
+                    <span class="flex-1">공익신고 성공보수는 얼마인가요?</span>
+                    <i class="fa-solid fa-chevron-down text-sm group-open:rotate-180 transition" style="color:var(--stamp);"></i>
+                </summary>
+                <p class="text-sm mt-3" style="color:var(--slate);">사건 유형과 난이도에 따라 다르며, 변호사 상담 후 보상금 지급 전 서면 계약서로 비율을 사전 확정합니다. 보상금이 없으면 비용도 발생하지 않습니다.</p>
+            </details>
+        </div>
+    </section>
+
+    <!-- 6. 제보하기 -->
+    <section id="report" class="flex flex-col justify-center max-w-xl mx-auto px-4">
+        <div class="bg-white p-8 rounded-md border" style="border-color:var(--line); border-left:4px solid var(--stamp);">
+            <p class="case-number text-center mb-2">REPORT FORM</p>
+            <h2 class="text-2xl font-bold mb-2 text-center">불편사항 익명 제보</h2>
+            <p class="text-center text-xs mb-6" style="color:var(--slate);">STEP 1 AI 분석은 무료입니다. 비용은 매칭 단계에서만 발생합니다.</p>
+
+            <!-- 선택한 플랜 칩 -->
+            <div id="selectedPlanChip" class="hidden mb-4 border rounded-md p-3 flex items-center justify-between gap-2" style="background:rgba(178,59,44,0.06); border-color:var(--stamp);" aria-live="polite">
+                <span class="text-sm" style="color:var(--stamp-dark);"><i class="fa-solid fa-circle-check mr-1"></i>선택한 플랜: <strong id="selectedPlanLabel"></strong></span>
+                <button type="button" onclick="clearPlan()" class="text-xs underline shrink-0 focus-visible:outline-none focus-visible:ring-2 rounded" style="color:var(--stamp-dark); --tw-ring-color:var(--seal);">변경</button>
+            </div>
+
             <form onsubmit="handleSubmit(event)" class="space-y-4">
+                <input type="hidden" id="selectedPlanInput" name="plan" value="">
+
                 <div>
-                    <label class="block text-sm font-semibold mb-2">제보 유형</label>
+                    <span class="text-xs font-bold mb-1 block" style="color:var(--slate);">제보 유형</span>
                     <div class="grid grid-cols-2 gap-2">
-                        <label class="border p-3 rounded-lg text-center cursor-pointer hover:border-blue-500">
-                            <input type="radio" name="type" value="civil" checked class="hidden"> 행정 민원
+                        <label id="labelCivil" class="border-2 p-3 rounded-md text-center cursor-pointer text-sm font-bold transition report-type-active focus-within:ring-2 focus-within:ring-offset-1" style="border-color:var(--line); --tw-ring-color:var(--seal);">
+                            <input type="radio" name="type" value="civil" checked class="sr-only" onchange="updateReportType('civil')"> 행정 민원
                         </label>
-                        <label class="border p-3 rounded-lg text-center cursor-pointer hover:border-blue-500">
-                            <input type="radio" name="type" value="reward" class="hidden"> 공익신고(보상금)
+                        <label id="labelReward" class="border-2 p-3 rounded-md text-center cursor-pointer text-sm font-bold transition focus-within:ring-2 focus-within:ring-offset-1" style="border-color:var(--line); color:var(--seal); --tw-ring-color:var(--seal);">
+                            <input type="radio" name="type" value="reward" class="sr-only" onchange="updateReportType('reward')"> 공익신고(보상금)
                         </label>
                     </div>
                 </div>
+
+                <p id="feeNote" class="mono text-xs rounded-md p-3 border" style="color:var(--slate); background:var(--paper-dim); border-color:var(--line);" aria-live="polite">셀프 진행은 무료입니다. 행정사 대행이 필요하면 라이트 34,000원 · 스탠다드 140,000원(추천) · 프로 250,000원~ 중 선택하실 수 있습니다. 정확한 견적은 AI 분석 후 안내됩니다.</p>
+
                 <div>
-                    <label class="block text-sm font-semibold">제보 제목</label>
-                    <input type="text" required class="w-full p-3 border rounded-lg">
+                    <label for="reportTitle" class="text-xs font-bold mb-1 block" style="color:var(--slate);">제보 제목</label>
+                    <input id="reportTitle" type="text" placeholder="예: 어린이집 보조금 부정수급 건" required class="w-full p-3 border rounded-md focus-visible:outline-none focus-visible:ring-2" style="border-color:var(--line); --tw-ring-color:var(--seal);">
                 </div>
+
                 <div>
-                    <label class="block text-sm font-semibold">사연 및 증거 현황</label>
-                    <textarea required rows="4" class="w-full p-3 border rounded-lg"></textarea>
+                    <label for="reportDetail" class="text-xs font-bold mb-1 block" style="color:var(--slate);">상세 사연</label>
+                    <textarea id="reportDetail" rows="4" placeholder="현재 확보된 증거 현황을 함께 적어주시면 분석이 더 정확해집니다." required class="w-full p-3 border rounded-md focus-visible:outline-none focus-visible:ring-2" style="border-color:var(--line); --tw-ring-color:var(--seal);"></textarea>
                 </div>
-                <button class="w-full bg-gray-900 text-white py-4 rounded-lg font-bold">제보하기</button>
+
+                <div>
+                    <label for="reportFiles" class="text-xs font-bold mb-1 block" style="color:var(--slate);">증거자료 첨부 (선택, 최대 5개)</label>
+                    <input id="reportFiles" type="file" multiple accept="image/*,.pdf,.doc,.docx" class="w-full text-sm border rounded-md p-2 focus-visible:outline-none focus-visible:ring-2" style="border-color:var(--line); background:var(--paper-dim); --tw-ring-color:var(--seal);">
+                </div>
+
+                <label class="flex items-start gap-2 text-xs" style="color:var(--slate);">
+                    <input type="checkbox" required class="mt-0.5">
+                    <span>개인정보 수집 및 이용, 비용 안내 방식에 동의합니다. (<a href="#" class="underline">개인정보처리방침 보기</a>)</span>
+                </label>
+
+                <button id="submitBtn" type="submit" class="w-full py-4 rounded-md font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed" style="background:var(--stamp); color:var(--paper); --tw-ring-color:var(--seal);" onmouseover="if(!this.disabled)this.style.background='var(--stamp-dark)'" onmouseout="if(!this.disabled)this.style.background='var(--stamp)'">전문가 매칭 신청하기</button>
             </form>
+
+            <!-- 제출 완료 상태 -->
+            <div id="successPanel" class="hidden text-center py-4" role="status" aria-live="polite">
+                <span class="stamp-badge text-base mb-4" style="display:inline-flex;">접수완료</span>
+                <h3 class="font-bold text-lg mb-4 mt-2">제보가 접수되었습니다</h3>
+                <ul class="text-sm text-left max-w-sm mx-auto space-y-2 mb-6" style="color:var(--slate);">
+                    <li><i class="fa-solid fa-check mr-2" style="color:var(--stamp);"></i>AI 분석: 24시간 내 완료 (무료)</li>
+                    <li><i class="fa-solid fa-check mr-2" style="color:var(--stamp);"></i>전문가 매칭 및 비용 사전 안내</li>
+                    <li><i class="fa-solid fa-check mr-2" style="color:var(--stamp);"></i>공식 기관 접수</li>
+                    <li><i class="fa-solid fa-check mr-2" style="color:var(--stamp);"></i>처리 압박 및 결과 안내</li>
+                </ul>
+                <button type="button" onclick="resetForm()" class="text-sm underline focus-visible:outline-none focus-visible:ring-2 rounded" style="color:var(--seal); --tw-ring-color:var(--seal);">새로운 제보 작성하기</button>
+            </div>
         </div>
     </section>
 
-    <footer class="py-10 text-center text-gray-500 text-xs">
-        <p>© 2026 취재시작. 모든 제보는 암호화되어 안전하게 처리됩니다.</p>
+    <footer class="py-10 text-center text-xs px-4" style="background:var(--ink); color:rgba(242,240,232,0.6);">
+        <p>본 서비스는 제보자의 권리(보상금)를 침해하지 않으며, 정당한 취재 비용 외 별도의 수수료를 수취하지 않습니다.</p>
+        <div class="mt-4 space-y-1.5" style="color:rgba(242,240,232,0.45);">
+            <p><i class="fa-solid fa-building mr-1.5"></i>상호: 취재시작 (Start-Chwijae) · 대표: [대표자명 입력]</p>
+            <p><i class="fa-solid fa-id-card mr-1.5"></i>사업자등록번호: [000-00-00000] · 통신판매업신고: [신고번호 입력]</p>
+            <p><i class="fa-solid fa-location-dot mr-1.5"></i>주소: [사업장 주소 입력] &nbsp;·&nbsp; <i class="fa-solid fa-headset mr-1.5"></i>고객센터: [이메일 또는 전화번호 입력]</p>
+            <p><a href="#" class="underline" style="color:rgba(242,240,232,0.7);">이용약관</a> · <a href="#" class="underline" style="color:rgba(242,240,232,0.7);">개인정보처리방침</a></p>
+        </div>
+        <p class="mt-4">© 2026 취재시작 (Start-Chwijae). 모든 제보는 암호화 처리됩니다.</p>
     </footer>
 
     <script>
+        function formatCaseDate(){
+            const d = new Date();
+            const y = d.getFullYear();
+            const m = String(d.getMonth()+1).padStart(2,'0');
+            const day = String(d.getDate()).padStart(2,'0');
+            return 'CASE NO. ' + y + '-' + m + day;
+        }
+        const caseDateEl = document.getElementById('caseDate');
+        if (caseDateEl) caseDateEl.textContent = formatCaseDate();
+
         function handleSubmit(e) {
             e.preventDefault();
-            alert('제보가 성공적으로 접수되었습니다! \n\n[단계별 진행 안내]\n1. AI가 제보 내용을 분석합니다.\n2. 매칭된 기자가 사실 확인 후 추가 취재에 돌입합니다.\n3. 지자체 및 권익위에 공식 접수합니다.\n4. 담당 국회의원/시의원실에 민원 해결을 촉구합니다.\n\n진행 상황은 MY 페이지에서 실시간 확인 가능합니다.');
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = '접수 처리 중...';
+            setTimeout(() => {
+                e.target.classList.add('hidden');
+                document.getElementById('selectedPlanChip').classList.add('hidden');
+                document.getElementById('successPanel').classList.remove('hidden');
+            }, 700);
         }
+
+        function resetForm() {
+            const form = document.querySelector('#report form');
+            form.reset();
+            form.classList.remove('hidden');
+            document.getElementById('successPanel').classList.add('hidden');
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = false;
+            btn.textContent = '전문가 매칭 신청하기';
+            updateReportType('civil');
+            document.getElementById('labelCivil').querySelector('input').checked = true;
+        }
+
+        function selectPlan(planId, label, price) {
+            document.getElementById('selectedPlanInput').value = planId;
+            document.getElementById('selectedPlanLabel').textContent = label + ' · ' + price;
+            document.getElementById('selectedPlanChip').classList.remove('hidden');
+            if (planId === 'reward') {
+                document.getElementById('labelReward').querySelector('input').checked = true;
+                updateReportType('reward');
+            } else {
+                document.getElementById('labelCivil').querySelector('input').checked = true;
+                updateReportType('civil');
+            }
+        }
+
+        function clearPlan() {
+            document.getElementById('selectedPlanInput').value = '';
+            document.getElementById('selectedPlanChip').classList.add('hidden');
+        }
+
+        function updateReportType(value) {
+            const civil = document.getElementById('labelCivil');
+            const reward = document.getElementById('labelReward');
+            const note = document.getElementById('feeNote');
+            if (value === 'civil') {
+                civil.classList.add('report-type-active');
+                reward.classList.remove('report-type-active');
+                note.textContent = '셀프 진행은 무료입니다. 행정사 대행이 필요하면 라이트 34,000원 · 스탠다드 140,000원(추천) · 프로 250,000원~ 중 선택하실 수 있습니다.';
+            } else {
+                reward.classList.add('report-type-active');
+                civil.classList.remove('report-type-active');
+                note.textContent = '예상 비용: 착수금 없음. 보상금 확정 시에만 성공보수가 발생하며, 비율은 사전 서면 계약으로 확정됩니다.';
+            }
+        }
+
+        const menuBtn = document.getElementById('menuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const menuIconBars = document.getElementById('menuIconBars');
+        const menuIconClose = document.getElementById('menuIconClose');
+        menuBtn.addEventListener('click', () => {
+            const willOpen = !mobileMenu.classList.contains('is-open');
+            mobileMenu.classList.toggle('is-open', willOpen);
+            menuBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            menuIconBars.style.display = willOpen ? 'none' : 'block';
+            menuIconClose.style.display = willOpen ? 'block' : 'none';
+        });
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('is-open');
+                menuBtn.setAttribute('aria-expanded', 'false');
+                menuIconBars.style.display = 'block';
+                menuIconClose.style.display = 'none';
+            });
+        });
     </script>
 </body>
 </html>
