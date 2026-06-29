@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>온기(On-Gi) | 보안 암구호 생성기</title>
+<style>
+  /* 디자인에 사용될 색상 변수 정의 */
+  :root {
+    --bg: #FDFBF7;
+    --card: #FFFFFF;
+    --ink: #4A3E3D;
+    --ink-soft: #8A7E7C;
+    --line: #EAE5DC;
+    --chat: #F4F1EA;
+    --accent: #C08C73;
+    --accent-deep: #A9714F;
+    --safe: #5B8C72;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+
+  /* 중앙 정렬 카드 레이아웃 */
+  .container {
+    width: 100%;
+    max-width: 420px;
+    background: var(--card);
+    padding: 40px 24px;
+    box-shadow: 0 10px 30px rgba(74,62,61,.06);
+    border-radius: 24px;
+    text-align: center;
+  }
+
+  .brand-name {
+    font-size: 13px;
+    color: var(--accent-deep);
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.4;
+    margin: 0 0 8px 0;
+  }
+
+  .desc {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    margin-bottom: 32px;
+  }
+
+  /* 생성된 암구호가 표시되는 박스 */
+  .code-display-box {
+    background: var(--chat);
+    border-radius: 16px;
+    padding: 24px 16px;
+    margin-bottom: 24px;
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    border: 1px solid var(--line);
+  }
+
+  .code-row {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: 1px;
+    margin: 6px 0;
+  }
+
+  .code-label {
+    font-size: 11px;
+    color: var(--accent-deep);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* 암구호 조건 설정 영역 */
+  .setting-group {
+    text-align: left;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+
+  .setting-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+
+  .radio-label {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+    cursor: pointer;
+  }
+
+  .radio-label:last-child {
+    margin-bottom: 0;
+  }
+
+  .radio-label input {
+    margin-right: 8px;
+    accent-color: var(--accent-deep);
+  }
+
+  /* 공통 버튼 스타일 */
+  .btn {
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    width: 100%;
+    transition: background .2s, transform .1s;
+    margin-bottom: 10px;
+  }
+
+  .btn:hover { background: #635352; }
+  .btn:active { transform: scale(.98); }
+
+  /* 복사 버튼 전용 보조 스타일 */
+  .btn-secondary {
+    background: #FFFFFF;
+    color: var(--ink);
+    border: 2px solid var(--line);
+    margin-bottom: 0;
+  }
+
+  .btn-secondary:hover {
+    background: var(--bg);
+    border-color: var(--accent);
+  }
+
+  /* 알림 메시지 스타일 (복사 완료 알림용) */
+  .toast {
+    font-size: 12px;
+    color: var(--safe);
+    font-weight: 600;
+    margin-top: 8px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="brand-name">디지털 소도어스 : 온기</div>
+  <h1>오늘의 보안 암구호</h1>
+  <p class="desc">가족 간의 비밀 확인, 혹은 중요한 본인 인증을 위한<br>보안용 무작위 암구호를 생성합니다.</p>
+
+  <div class="code-display-box">
+    <div>
+      <span class="code-label">[ 문어 / 문 질문 ]</span>
+      <div class="code-row" id="call-word">화평</div>
+    </div>
+    <div style="margin-top: 12px;">
+      <span class="code-label">[ 답어 / 답 답변 ]</span>
+      <div class="code-row" id="response-word">수박</div>
+    </div>
+  </div>
+
+  <div class="setting-group">
+    <div class="setting-title">암구호 생성 조건</div>
+    <label class="radio-label">
+      <input type="radio" name="word-type" value="korean" checked onchange="generatePassphrase()">
+      일반 한글 단어 조합 (기억하기 쉬움)
+    </label>
+    <label class="radio-label">
+      <input type="radio" name="word-type" value="secure" onchange="generatePassphrase()">
+      숫자 + 특수기호 조합 (고성능 인증용)
+    </label>
+  </div>
+
+  <button class="btn" onclick="generatePassphrase()">새로운 암구호 생성하기</button>
+  <button class="btn btn-secondary" onclick="copyToClipboard()">암구호 복사하기</button>
+  
+  <div id="toast-msg" class="toast">✓ 암구호가 클립보드에 복사되었습니다.</div>
+</div>
+
+<script>
+  // [데이터] 기억하기 쉽고 따뜻한 느낌을 주는 순우리말 및 일상 단어 리스트
+  const KOREAN_WORDS = [
+    "나무", "하늘", "바다", "구름", "매화", "윤슬", "바람", "햇살", "온기", "가람",
+    "나비", "미소", "단비", "은하", "새벽", "노을", "보람", "여울", "도담", "라온",
+    "푸름", "한울", "소담", "달빛", "별빛", "수박", "포도", "앵두", "자두", "참외",
+    "들꽃", "단풍", "은행", "솔숲", "이슬", "소나무", "대나무", "화평", "안녕", "마음"
+  ];
+
+  // [데이터] 고성능 인증용 특수기호 및 숫자 조합을 위한 소스
+  const SECURE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^*";
+
+  /**
+   * 무작위 숫자를 활용해 한글 단어 배열에서 랜덤하게 하나를 추출하는 함수
+   */
+  function getRandomKoreanWord() {
+    const randomIndex = Math.floor(Math.random() * KOREAN_WORDS.length);
+    return KOREAN_WORDS[randomIndex];
+  }
+
+  /**
+   * 보안용 난수 암호를 지정된 길이만큼 무작위 생성하는 함수
+   */
+  function generateSecureCode(length) {
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * SECURE_CHARS.length);
+      result += SECURE_CHARS.charAt(randomIndex);
+    }
+    return result;
+  }
+
+  /**
+   * 사용자가 선택한 라디오 버튼 값에 따라 '문어'와 '답어'를 화면에 갱신하는 핵심 메인 함수
+   */
+  function generatePassphrase() {
+    // 현재 라디오 버튼 중 체크된 값을 가져옴
+    const selectedType = document.querySelector('input[name="word-type"]:checked').value;
+    
+    let call = "";
+    let response = "";
+
+    if (selectedType === "korean") {
+      // 한글 조합일 경우, 서로 다른 두 개의 단어가 나오도록 처리
+      call = getRandomKoreanWord();
+      response = getRandomKoreanWord();
+      while (call === response) {
+        response = getRandomKoreanWord(); // 혹시라도 같으면 다시 뽑기
+      }
+    } else {
+      // 보안 코드일 경우 각각 6자리의 무작위 문자열 생성
+      call = generateSecureCode(6);
+      response = generateSecureCode(6);
+    }
+
+    // 화면의 텍스트 엘리먼트를 동적으로 변경
+    document.getElementById("call-word").textContent = call;
+    document.getElementById("response-word").textContent = response;
+  }
+
+  /**
+   * 생성된 암구호를 사용자의 스마트폰이나 PC 클립보드에 저장해 주는 편의 함수
+   */
+  function copyToClipboard() {
+    const callText = document.getElementById("call-word").textContent;
+    const responseText = document.getElementById("response-word").textContent;
+    
+    // 복사될 텍스트 포맷 정렬
+    const fullText = `[오늘의 암구호]\n문어: ${callText}\n답어: ${responseText}`;
+
+    // 최신 브라우저의 Clipboard API를 사용해 복사 실행
+    navigator.clipboard.writeText(fullText).then(() => {
+      const toast = document.getElementById("toast-msg");
+      toast.classList.add("show"); // 알림 메시지 보여주기
+      
+      // 2초 뒤에 알림 메시지 부드럽게 감추기
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2000);
+    }).catch(err => {
+      console.error("복사 실패: ", err);
+    });
+  }
+
+  // 페이지가 처음 로드될 때 자동으로 첫 암구호를 생성해 두기 위해 호출
+  window.onload = function() {
+    generatePassphrase();
+  };
+</script>
+</body>
+</html>
