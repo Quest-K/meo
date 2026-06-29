@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>암구호 랜덤 생성기</title>
+    <title>보안 암구호 시스템 (완전 랜덤)</title>
     <style>
         /* 웹페이지 기본 스타일 설정 */
         body {
@@ -13,87 +13,230 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #f5f6fa;
+            background-color: #1e272e; /* 보안 테마 어두운 배경 */
+            color: #ffffff;
         }
-        /* 암구호가 표시될 카드 박스 스타일 */
+        /* 암구호 세트가 표시될 카드 박스 스타일 */
         .container {
             text-align: center;
-            background: white;
-            padding: 40px 60px;
+            background: #2f3640;
+            padding: 50px 60px;
             border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            min-width: 450px;
         }
         h1 {
-            color: #333;
-            font-size: 1.5rem;
-            margin-bottom: 30px;
-        }
-        /* 랜덤으로 노출될 단어의 강조 스타일 */
-        .word-display {
-            font-size: 3.5rem;
-            font-weight: bold;
-            color: #2e86de;
-            margin-bottom: 30px;
+            color: #fbc531; /* 경고/보안을 상징하는 황색 포인트 */
+            font-size: 1.4rem;
+            margin-bottom: 40px;
             letter-spacing: 2px;
+            text-transform: uppercase;
         }
-        /* 다른 단어를 볼 수 있는 버튼 스타일 */
+        /* 문어와 답어를 배치하는 그리드 레이아웃 */
+        .code-zone {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            gap: 20px;
+        }
+        /* 개별 암구호(문어/답어) 상자 스타일 */
+        .code-box {
+            flex: 1;
+            background: #353b48;
+            padding: 25px 20px;
+            border-radius: 10px;
+            border: 1px solid #718093;
+        }
+        .code-label {
+            font-size: 0.9rem;
+            color: #a4b0be;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+        .code-word {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #00d2d3; /* 부각되는 민트색 적용 */
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        .code-meaning {
+            font-size: 0.9rem;
+            color: #dcdde1;
+            line-height: 1.4;
+        }
+        /* 다른 암구호 세트를 생성하는 버튼 스타일 */
         .refresh-btn {
-            background-color: #2e86de;
-            color: white;
+            background-color: #fbc531;
+            color: #2f3640;
             border: none;
-            padding: 12px 25px;
-            font-size: 1rem;
+            padding: 14px 35px;
+            font-size: 1.1rem;
+            font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            letter-spacing: 1px;
         }
         .refresh-btn:hover {
-            background-color: #1a5276;
+            background-color: #e1b12c;
+            transform: translateY(-2px);
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>오늘의 암구호</h1>
-        <!-- JavaScript를 통해 랜덤 단어가 삽입될 구역 -->
-        <div id="passwordWord" class="word-display">로드 중...</div>
-        <!-- 클릭 시 새로운 단어를 뽑아주는 버튼 -->
-        <button class="refresh-btn" onclick="showRandomWord()">새로고침</button>
+        <h1>오늘의 완전 랜덤 암구호</h1>
+        
+        <div class="code-zone">
+            <div class="code-box">
+                <div class="code-label">문어 (問語) - 2글자</div>
+                <div id="questionWord" class="code-word">로드 중...</div>
+                <div id="questionMeaning" class="code-meaning"></div>
+            </div>
+            
+            <div class="code-box">
+                <div class="code-label">답어 (答語) - 3글자</div>
+                <div id="answerWord" class="code-word">로드 중...</div>
+                <div id="answerMeaning" class="code-meaning"></div>
+            </div>
+        </div>
+        
+        <button class="refresh-btn" onclick="generateTrueRandomCrypto()">암구호 갱신</button>
     </div>
 
     <script>
-        // 암구호로 쓰기 좋은 순우리말 2글자, 3글자 단어 총 100개 리스트
-        const koreanWords = [
-            // --- 2글자 순우리말 (50개) ---
-            "가람", "나래", "다솜", "라온", "마루", "바람", "아라", "시나", "미르", "그린",
-            "도담", "새론", "온누", "하람", "모아", "노을", "윤슬", "꼬두", "벼리", "혜윰",
-            "소미", "다은", "이솔", "늘봄", "새솔", "한울", "나봄", "도란", "든해", "소아",
-            "잔디", "하늬", "단미", "토리", "보늬", "새나", "하나", "누리", "가온", "로다",
-            "티나", "솔찬", "소담", "달래", "다올", "나린", "슬아", "수피", "아사", "우솔",
-
-            // --- 3글자 순우리말 (50개) ---
-            "미리내", "도란도", "시나브", "다소니", "아스라", "안다미", "하제나", "바라봄", "새하마", "한내글",
-            "푸르내", "보람찬", "가람휘", "나르샤", "가온길", "꽃가람", "늘해랑", "다솔길", "도담도", "마루한",
-            "벼리마", "새슬아", "소담한", "온누리", "하람빛", "한빛가", "흰가람", "그린나", "길가온", "꽃내음",
-            "나래울", "다사롬", "든솔길", "마루치", "별하랑", "새론길", "소아름", "아리아", "오롯이", "우람찬",
-            "으뜸이", "찬누리", "하늬바", "한가람", "한울타", "해오름", "희나리", "늘솔길", "다사로", "새물결"
+        // 문어로 사용될 2글자 순우리말 독립 데이터 (50개)
+        const questionPool = [
+            { word: "가람", meaning: "강의 순우리말" },
+            { word: "나래", meaning: "날개의 순우리말" },
+            { word: "다솜", meaning: "사랑의 옛말" },
+            { word: "라온", meaning: "즐거운의 순우리말" },
+            { word: "마루", meaning: "산의 꼭대기, 정상" },
+            { word: "바람", meaning: "원하는 대로 이루어지기를 바라는 마음" },
+            { word: "아라", meaning: "바다의 우리말 표현" },
+            { word: "시나", meaning: "시나브로(모르는 사이에 조금씩)의 줄임" },
+            { word: "미르", meaning: "용(龍)의 순우리말" },
+            { word: "그린", meaning: "그리다에서 나온 말로, 동경하는 마음" },
+            { word: "도담", meaning: "어린아이가 탈 없이 잘 자라는 모양" },
+            { word: "새론", meaning: "늘 새로운 사람이 되라는 뜻" },
+            { word: "온누", meaning: "온 세상(온누리)의 앞 글자 조합" },
+            { word: "하람", meaning: "하늘이 내린 소중한 사람" },
+            { word: "모아", meaning: "늘 뜻을 모아 살라는 의미" },
+            { word: "노을", meaning: "해가 뜨거나 질 때 하늘이 붉게 물드는 현상" },
+            { word: "윤슬", meaning: "햇빛이나 달빛에 비치어 반짝이는 잔물결" },
+            { word: "꼬두", meaning: "꼭대기, 가장 높은 곳의 옛말 방언" },
+            { word: "벼리", meaning: "그물의 코를 꿴 굵은 줄, 일의 뼈대" },
+            { word: "혜윰", meaning: "생각의 순우리말" },
+            { word: "소미", meaning: "솜솜하고 정성스럽게 맺힌 열매" },
+            { word: "다은", meaning: "다사롭고 은은한" },
+            { word: "이솔", meaning: "소나무(솔)처럼 푸르고 꿋꿋하게" },
+            { word: "늘봄", meaning: "언제나 봄처럼 활기차고 따뜻하게" },
+            { word: "새솔", meaning: "새로 난 소나무의 푸르름" },
+            { word: "한울", meaning: "우주, 큰 울타리" },
+            { word: "나봄", meaning: "봄에 태어난 아이" },
+            { word: "도란", meaning: "정답게 이야기하는 모양(도란도란)" },
+            { word: "든해", meaning: "집 안으로 가득 들어온 햇빛" },
+            { word: "소아", meaning: "소담하고 아름다운" },
+            { word: "잔디", meaning: "밟혀도 다시 일어나는 끈질긴 생명력" },
+            { word: "하늬", meaning: "서쪽에서 부는 시원한 바람(하늬바람)" },
+            { word: "단미", meaning: "달콤하고 사랑스러운 여자" },
+            { word: "토리", meaning: "도토리처럼 작지만 야무지고 옹골찬" },
+            { word: "보늬", meaning: "밤처럼 겉껍질 속에 있는 얇은 속껍질" },
+            { word: "새나", meaning: "새가 날아오르듯 자유로운" },
+            { word: "하나", meaning: "이 세상에 오직 단 하나" },
+            { word: "누리", meaning: "세상의 순우리말" },
+            { word: "가온", meaning: "가운데, 세상의 중심이 되라는 뜻" },
+            { word: "로다", meaning: "기다리던 아이가 바로 너로다" },
+            { word: "티나", meaning: "어디서나 예쁜 티가 나타나다" },
+            { word: "솔찬", meaning: "소나무처럼 푸르고 옹골차게 가득 찬" },
+            { word: "소담", meaning: "음식이 풍성하여 먹음직스럽거나 소복한 모양" },
+            { word: "달래", meaning: "봄의 생기를 주는 나물 이름" },
+            { word: "다올", meaning: "하는 일마다 복이 다 올" },
+            { word: "나린", meaning: "하늘이 내린 줄임말" },
+            { word: "슬아", meaning: "슬기롭고 아름다운" },
+            { word: "수피", meaning: "숲의 옛말 표현" },
+            { word: "아사", meaning: "아침의 옛말로 신선하고 깨끗함" },
+            { word: "우솔", meaning: "우람하게 자란 소나무" }
         ];
 
-        // 100개의 단어 중 하나를 무작위로 선택하여 화면에 노출하는 함수
-        function showRandomWord() {
-            // 0부터 99까지의 랜덤한 정수(인덱스) 생성
-            const randomIndex = Math.floor(Math.random() * koreanWords.length);
+        // 답어로 사용될 3글자 순우리말 독립 데이터 (50개)
+        const answerPool = [
+            { word: "미리내", meaning: "은하수의 순우리말" },
+            { word: "도란도", meaning: "나지막한 목소리로 정답게 이야기하는 모양" },
+            { word: "시나브", meaning: "모르는 사이에 조금씩 조금씩" },
+            { word: "다소니", meaning: "사랑하는 사람의 순우리말" },
+            { word: "아스라", meaning: "기억이 가물가물하고 아스라한 모양" },
+            { word: "안다미", meaning: "담은 것이 그릇에 넘치도록 많게" },
+            { word: "하제나", meaning: "내일(하제)처럼 다가올 희망" },
+            { word: "바라봄", meaning: "한곳을 향해 따뜻한 시선을 보내다" },
+            { word: "새하마", meaning: "새얗고 맑은 마음" },
+            { word: "한내글", meaning: "큰 시내처럼 끝없이 흐르는 글" },
+            { word: "푸르내", meaning: "맑고 푸른 물이 흐르는 시내" },
+            { word: "보람찬", meaning: "보람이 가득하여 마음에 뿌듯함" },
+            { word: "가람휘", meaning: "강(가람)과 휘(넓은 벌판)의 조합" },
+            { word: "나르샤", meaning: "날아오르다의 옛말" },
+            { word: "가온길", meaning: "정직하고 바른 가운데(중심) 길" },
+            { word: "꽃가람", meaning: "꽃이 핀 강가" },
+            { word: "늘해랑", meaning: "늘 해와 함께 살아가는 밝은 사람" },
+            { word: "다솔길", meaning: "어린 소나무들이 곧게 자란 길" },
+            { word: "도담도", meaning: "어린아이가 아무 탈 없이 자라는 모양" },
+            { word: "마루한", meaning: "으뜸가는 리더, 최고의 우두머리" },
+            { word: "벼리마", meaning: "중심이 되는 일의 뼈대와 마음" },
+            { word: "새슬아", meaning: "새롭고 슬기로우며 아름다운" },
+            { word: "소담한", meaning: "생김새가 탐스럽고 풍성한" },
+            { word: "온누리", meaning: "온 세상 전체를 뜻하는 말" },
+            { word: "하람빛", meaning: "하늘이 내린 소중한 사람의 빛" },
+            { word: "한빛가", meaning: "세상을 이끄는 환하고 큰 빛" },
+            { word: "흰가람", meaning: "맑고 깨끗하게 흐르는 강" },
+            { word: "그린나", meaning: "그리운 나래, 혹은 꿈을 그리는 나" },
+            { word: "길가온", meaning: "길의 한가운데, 올바른 행보" },
+            { word: "꽃내음", meaning: "꽃의 향기롭고 은은한 냄새" },
+            { word: "나래울", meaning: "날개(나래)가 펼쳐진 큰 울타리" },
+            { word: "다사롬", meaning: "따뜻하고 다사로운 상태나 성품" },
+            { word: "든솔길", meaning: "든든한 소나무가 늘어선 길" },
+            { word: "마루치", meaning: "하늘 혹은 산꼭대기를 뜻하는 소년 영웅" },
+            { word: "별하랑", meaning: "별처럼 높고 빛나는 사람이 되어 함께하다" },
+            { word: "새론길", meaning: "늘 새롭게 나아가는 발전적인 길" },
+            { word: "소아름", meaning: "소담하고 아름다운 한 아름의 선물" },
+            { word: "아리아", meaning: "요정이나 고운 사람을 부르는 우리말 소리" },
+            { word: "오롯이", meaning: "모자람 없이 온전하고 완벽하게" },
+            { word: "우람찬", meaning: "풍채가 크고 위엄이 넘치는 모양" },
+            { word: "으뜸이", meaning: "가장 뛰어난 첫째가는 사람" },
+            { word: "찬누리", meaning: "복이 가득 찬 온 세상" },
+            { word: "하늬바", meaning: "농가나 어촌에서 서풍을 이르는 말" },
+            { word: "한가람", meaning: "크고 넓은 한강과 같은 강" },
+            { word: "한울타", meaning: "우주만큼 큰 한 울타리" },
+            { word: "해오름", meaning: "해가 산이나 바다 위로 힘차게 떠오름" },
+            { word: "희나리", meaning: "덜 마른 장작, 혹은 가공하지 않은 순수함" },
+            { word: "늘솔길", meaning: "언제나 솔바람이 부는 상쾌한 길" },
+            { word: "다사로", meaning: "날씨나 성품이 매우 다사롭고 따뜻함" },
+            { word: "새물결", meaning: "새롭게 일어나는 긍정적인 동향이나 흐름" }
+        ];
+
+        // 문어 풀과 답어 풀에서 완전히 독립적으로 랜덤하게 추출하여 매칭하는 함수
+        function generateTrueRandomCrypto() {
+            // 0~49 인덱스 중 문어용 랜덤 인덱스 추출
+            const randomQIndex = Math.floor(Math.random() * questionPool.length);
+            // 0~49 인덱스 중 답어용 랜덤 인덱스 추출 (완전 독립 시행)
+            const randomAIndex = Math.floor(Math.random() * answerPool.length);
             
-            // 선택된 인덱스의 단어를 가져옴
-            const selectedWord = koreanWords[randomIndex];
+            const selectedQ = questionPool[randomQIndex];
+            const selectedA = answerPool[randomAIndex];
             
-            // HTML 문서 내의 'passwordWord' 요소를 찾아 단어를 변경함
-            document.getElementById("passwordWord").innerText = selectedWord;
+            // 문어 영역 화면 업데이트
+            document.getElementById("questionWord").innerText = selectedQ.word;
+            document.getElementById("questionMeaning").innerText = selectedQ.meaning;
+            
+            // 답어 영역 화면 업데이트
+            document.getElementById("answerWord").innerText = selectedA.word;
+            document.getElementById("answerMeaning").innerText = selectedA.meaning;
         }
 
-        // 웹사이트가 처음 로드될 때 자동으로 함수를 실행하여 첫 화면에 단어가 보이도록 설정
-        window.onload = showRandomWord;
+        // 브라우저가 준비되면 즉시 최초의 완전 랜덤 암구호 생성
+        window.onload = generateTrueRandomCrypto;
     </script>
 </body>
 </html>
