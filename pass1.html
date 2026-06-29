@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>우리 가족 AI 피싱 방지 시스템</title>
+    <style>
+        /* 웹페이지 기본 스타일 설정 */
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: #1a202c; /* 신뢰감과 보안성을 주는 딥 네이비 테마 */
+            color: #edf2f7;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        /* 메인 컨테이너 스타일 */
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: #2d3748;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #ecc94b; /* 경고 및 인지용 황색 포인트 컬러 */
+            font-size: 1.5rem;
+            margin-top: 0;
+            margin-bottom: 25px;
+            letter-spacing: 1px;
+        }
+        /* 실전 대응 행동 요령 가이드 박스 */
+        .action-guide {
+            background: #1a202c;
+            border-left: 5px solid #ecc94b;
+            padding: 15px;
+            text-align: left;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        .action-guide strong {
+            color: #fc8181; /* 강조용 붉은 톤 */
+        }
+        /* 암구호 노출 구역 레이아웃 */
+        .crypto-display {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .crypto-box {
+            flex: 1;
+            background: #34495e;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #4a5568;
+        }
+        .box-title {
+            font-size: 0.85rem;
+            color: #cbd5e0;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .box-word {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #4fd1c5; /* 가시성이 좋은 민트 컬러 */
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        .box-meaning {
+            font-size: 0.85rem;
+            color: #a0aec0;
+        }
+        /* 갱신 버튼 디자인 */
+        .refresh-btn {
+            background-color: #ecc94b;
+            color: #1a202c;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+        }
+        .refresh-btn:hover {
+            background-color: #d69e2e;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>가족 확인 안심 암구호</h1>
+        
+        <div class="action-guide">
+            <strong>🚨 AI 보이스피싱 의심 시 대응 요령:</strong><br>
+            1. 전화를 받은 가족이 화면의 <strong>[문어]</strong>를 외칩니다. (예: "가람!")<br>
+            2. 전화를 건 사람(가족 의심자)에게 사전에 약속된 <strong>[답어]</strong>를 말하게 합니다.<br>
+            3. 상대방이 답어를 즉시 말하지 못하거나 틀린다면, <strong>목소리가 똑같아도 AI 사기이므로 즉시 전화를 끊으십시오.</strong>
+        </div>
+        
+        <div class="crypto-display">
+            <div class="crypto-box">
+                <div class="box-title">1. 내가 외치는 말 (문어)</div>
+                <div id="qWord" class="box-word">로드 중...</div>
+                <div id="qMeaning" class="box-meaning"></div>
+            </div>
+            <div class="crypto-box">
+                <div class="box-title">2. 상대가 대답할 말 (답어)</div>
+                <div id="aWord" class="box-word">로드 중...</div>
+                <div id="aMeaning" class="box-meaning"></div>
+            </div>
+        </div>
+        
+        <button class="refresh-btn" onclick="mixFamilyCrypto()">가족 공유 암구호 변경</button>
+    </div>
+
+    <script>
+        // 문어로 쓰일 2글자 순우리말 (50개)
+        const questions = [
+            { word: "가람", meaning: "강의 순우리말" }, { word: "나래", meaning: "날개의 순우리말" },
+            { word: "다솜", meaning: "사랑의 옛말" }, { word: "라온", meaning: "즐거운의 순우리말" },
+            { word: "마루", meaning: "산의 꼭대기, 정상" }, { word: "바람", meaning: "원하는 대로의 소망" },
+            { word: "아라", meaning: "바다의 우리말 표현" }, { word: "시나", meaning: "모르는 사이에 조금씩" },
+            { word: "미르", meaning: "용(龍)의 순우리말" }, { word: "그린", meaning: "동경하는 마음" },
+            { word: "도담", meaning: "아이가 잘 자라는 모양" }, { word: "새론", meaning: "늘 새로운 사람이 되라" },
+            { word: "온누", meaning: "온 세상의 앞 글자 조합" }, { word: "하람", meaning: "하늘이 내린 소중한 사람" },
+            { word: "모아", meaning: "늘 뜻을 모아 살라는 의미" }, { word: "노을", meaning: "하늘이 붉게 물드는 현상" },
+            { word: "윤슬", meaning: "반짝이는 잔물결" }, { word: "꼬두", meaning: "가장 높은 곳의 옛말" },
+            { word: "벼리", meaning: "일의 뼈대, 그물의 코" }, { word: "혜윰", meaning: "생각의 순우리말" },
+            { word: "소미", meaning: "정성스럽게 맺힌 열매" }, { word: "다은", meaning: "다사롭고 은은한" },
+            { word: "이솔", meaning: "소나무처럼 푸르고 꿋꿋하게" }, { word: "늘봄", meaning: "언제나 봄처럼 따뜻하게" },
+            { word: "새솔", meaning: "새로 난 소나무의 푸르름" }, { word: "한울", meaning: "우주, 큰 울타리" },
+            { word: "나봄", meaning: "봄에 태어난 아이" }, { word: "도란", meaning: "정답게 이야기하는 모양" },
+            { word: "든해", meaning: "집 안 가득 들어온 햇빛" }, { word: "소아", meaning: "소담하고 아름다운" },
+            { word: "잔디", meaning: "끈질긴 생명력의 풀" }, { word: "하늬", meaning: "서쪽에서 부는 시원한 바람" },
+            { word: "단미", meaning: "달콤하고 사랑스러운 여자" }, { word: "토리", meaning: "작지만 야무지고 옹골찬 뜻" },
+            { word: "보늬", meaning: "겉껍질 속에 있는 얇은 속껍질" }, { word: "새나", meaning: "새가 날아오르듯 자유로운" },
+            { word: "하나", meaning: "이 세상에 오직 단 하나" }, { word: "누리", meaning: "세상의 순우리말" },
+            { word: "가온", meaning: "가운데, 세상의 중심" }, { word: "로다", meaning: "기다리던 아이가 바로 너로다" },
+            { word: "티나", meaning: "어디서나 예쁜 티가 나타나다" }, { word: "솔찬", meaning: "소나무처럼 옹골차게 가득 찬" },
+            { word: "소담", meaning: "풍성하여 먹음직스러운 모양" }, { word: "달래", meaning: "봄의 생기를 주는 나물" },
+            { word: "다올", meaning: "하는 일마다 복이 다 올" }, { word: "나린", meaning: "하늘이 내린의 줄임말" },
+            { word: "슬아", meaning: "슬기롭고 아름다운" }, { word: "수피", meaning: "숲의 옛말 표현" },
+            { word: "아사", meaning: "신선하고 깨끗한 아침 옛말" }, { word: "우솔", meaning: "우람하게 자란 소나무" }
+        ];
+
+        // 답어로 쓰일 3글자 순우리말 (50개)
+        const answers = [
+            { word: "미리내", meaning: "은하수의 순우리말" }, { word: "도란도", meaning: "정답게 이야기하는 모양" },
+            { word: "시나브", meaning: "모르는 사이에 조금씩" }, { word: "다소니", meaning: "사랑하는 사람의 순우리말" },
+            { word: "아스라", meaning: "기억이 가물가물하고 아스라한" }, { word: "안다미", meaning: "그릇에 넘치도록 많게" },
+            { word: "하제나", meaning: "내일처럼 다가올 희망" }, { word: "바라봄", meaning: "따뜻한 시선을 보내다" },
+            { word: "새하마", meaning: "새얗고 맑은 마음" }, { word: "한내글", meaning: "큰 시내처럼 끝없이 흐르는 글" },
+            { word: "푸르내", meaning: "맑고 푸른 물이 흐르는 시내" }, { word: "보람찬", meaning: "보람이 가득하여 뿌듯함" },
+            { word: "가람휘", meaning: "강과 넓은 벌판의 조합" }, { word: "나르샤", meaning: "날아오르다의 옛말" },
+            { word: "가온길", meaning: "정직하고 바른 가운데 길" }, { word: "꽃가람", meaning: "꽃이 핀 강가" },
+            { word: "늘해랑", meaning: "늘 해와 함께 살아가는 밝은이" }, { word: "다솔길", meaning: "어린 소나무들이 곧게 자란 길" },
+            { word: "도담도", meaning: "아이가 아무 탈 없이 자라는 모양" }, { word: "마루한", meaning: "으뜸가는 리더, 최고 우두머리" },
+            { word: "벼리마", meaning: "중심이 되는 일의 뼈대와 마음" }, { word: "새슬아", meaning: "새롭고 슬기로우며 아름다운" },
+            { word: "소담한", meaning: "생김새가 탐스럽고 풍성한" }, { word: "온누리", meaning: "온 세상 전체를 뜻하는 말" },
+            { word: "하람빛", meaning: "하늘이 내린 소중한 사람의 빛" }, { word: "한빛가", meaning: "세상을 이끄는 환하고 큰 빛" },
+            { word: "흰가람", meaning: "맑고 깨끗하게 흐르는 강" }, { word: "그린나", meaning: "그리운 나래, 꿈을 그리는 나" },
+            { word: "길가온", meaning: "길의 한가운데, 올바른 행보" }, { word: "꽃내음", meaning: "꽃의 향기롭고 은은한 냄새" },
+            { word: "나래울", meaning: "날개가 펼쳐진 큰 울타리" }, { word: "다사롬", meaning: "따뜻하고 다사로운 상태나 성품" },
+            { word: "든솔길", meaning: "든든한 소나무가 늘어선 길" }, { word: "마루치", meaning: "하늘이나 산꼭대기의 소년 영웅" },
+            { word: "별하랑", meaning: "별처럼 높고 빛나는 사람이 됨" }, { word: "새론길", meaning: "늘 새롭게 나아가는 발전적 길" },
+            { word: "소아름", meaning: "소담하고 아름다운 한 아름의 선물" }, { word: "아리아", meaning: "요정이나 고운 사람을 부르는 말" },
+            { word: "오롯이", meaning: "모자람 없이 온전하고 완벽하게" }, { word: "우람찬", meaning: "풍채가 크고 위엄이 넘치는 모양" },
+            { word: "으뜸이", meaning: "가장 뛰어난 첫째가는 사람" }, { word: "찬누리", meaning: "복이 가득 찬 온 세상" },
+            { word: "하늬바", meaning: "농가나 어촌에서 서풍을 이르는 말" }, { word: "한가람", meaning: "크고 넓은 한강과 같은 강" },
+            { word: "한울타", meaning: "우주만큼 큰 한 울타리" }, { word: "해오름", meaning: "해가 힘차게 떠오름" },
+            { word: "희나리", meaning: "덜 마른 장작, 가공하지 않은 순수" }, { word: "늘솔길", meaning: "언제나 솔바람이 부는 상쾌한 길" },
+            { word: "다사로", meaning: "날씨나 성품이 다사롭고 따뜻함" }, { word: "새물결", meaning: "새롭게 일어나는 긍정적인 흐름" }
+        ];
+
+        // 두 독립 풀(Pool)에서 무작위 추출하여 배치하는 메인 보안 로직
+        function mixFamilyCrypto() {
+            // 문어 풀(2글자) 난수 인덱스
+            const idxQ = Math.floor(Math.random() * questions.length);
+            // 답어 풀(3글자) 난수 인덱스 (서로 철저히 독립 배치)
+            const idxA = Math.floor(Math.random() * answers.length);
+            
+            // 데이터 바인딩 실행
+            document.getElementById("qWord").innerText = questions[idxQ].word;
+            document.getElementById("qMeaning").innerText = questions[idxQ].meaning;
+            
+            document.getElementById("aWord").innerText = answers[idxA].word;
+            document.getElementById("aMeaning").innerText = answers[idxA].meaning;
+        }
+
+        // 웹페이지 로딩 시 최초 실행
+        window.onload = mixFamilyCrypto;
+    </script>
+</body>
+</html>
