@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/meo/manifest.json">
+<title>가족 안심 앱</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+/* ═══ 기초 리셋 & 전역 ═══ */
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#1a202c;
+  --card:#2d3748;
+  --card2:#34495e;
+  --border:#4a5568;
+  --text:#edf2f7;
+  --soft:#a0aec0;
+  --yellow:#ecc94b;
+  --mint:#4fd1c5;
+  --red:#fc8181;
+  --green:#68d391;
+  --orange:#f6ad55;
+  --navy2:#1e2a3a;
+}
+html,body{height:100%;background:var(--bg);}
+body{
+  font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  color:var(--text);
+  display:flex;
+  flex-direction:column;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+
+/* ═══ 하단 네비게이션 ═══ */
+.bottom-nav{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  height:62px;
+  background:var(--card);
+  border-top:1px solid var(--border);
+  display:flex;
+  z-index:500;
+  box-shadow:0 -4px 20px rgba(0,0,0,0.3);
+}
+.nav-btn{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+  background:none;
+  border:none;
+  color:var(--soft);
+  cursor:pointer;
+  transition:color .2s;
+  padding:6px 0;
+  position:relative;
+}
+.nav-btn.active{color:var(--yellow);}
+.nav-btn .nav-icon{font-size:20px;line-height:1;}
+.nav-btn .nav-label{font-size:10px;font-weight:700;letter-spacing:.3px;}
+.nav-btn.nav-locked{opacity:.4;cursor:default;}
+.nav-badge{
+  position:absolute;
+  top:6px;right:calc(50% - 18px);
+  background:var(--red);
+  color:#fff;
+  font-size:9px;
+  font-weight:800;
+  padding:1px 5px;
+  border-radius:99px;
+  display:none;
+}
+.nav-badge.show{display:block;}
+
+/* ═══ 페이지 공통 ═══ */
+.page{
+  display:none;
+  flex:1;
+  overflow-y:auto;
+  padding-bottom:70px;
+  min-height:100vh;
+}
+.page.active{display:block;}
+
+/* ═══ PAGE 1: 피싱 테스트 ═══ */
+#page-test{background:var(--bg);}
+.test-wrap{
+  max-width:480px;
+  margin:0 auto;
+  padding:24px 16px;
+}
+
+/* 시작 화면 */
+.start-hero{
+  text-align:center;
+  padding:30px 0 20px;
+}
+.start-brand{
+  font-size:11px;
+  font-weight:800;
+  color:var(--mint);
+  letter-spacing:3px;
+  margin-bottom:16px;
+}
+.start-title{
+  font-size:clamp(1.4rem,6vw,1.9rem);
+  font-weight:800;
+  line-height:1.35;
+  margin-bottom:14px;
+  color:var(--text);
+}
+.start-title em{color:var(--yellow);font-style:normal;}
+.start-desc{
+  font-size:14px;
+  color:var(--soft);
+  line-height:1.7;
+  margin-bottom:30px;
+}
+.start-stats{
+  display:flex;
+  gap:12px;
+  margin-bottom:30px;
+}
+.stat-box{
+  flex:1;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px 8px;
+  text-align:center;
+}
+.stat-num{
+  font-size:1.5rem;
+  font-weight:800;
+  color:var(--yellow);
+  line-height:1;
+}
+.stat-label{
+  font-size:11px;
+  color:var(--soft);
+  margin-top:4px;
+  line-height:1.3;
+}
+.btn-main{
+  width:100%;
+  background:var(--yellow);
+  color:#1a202c;
+  border:none;
+  padding:16px;
+  font-size:1rem;
+  font-weight:800;
+  border-radius:12px;
+  cursor:pointer;
+  transition:background .2s,transform .1s;
+  letter-spacing:.3px;
+}
+.btn-main:active{transform:scale(.98);}
+.btn-main:hover{background:#d69e2e;}
+.btn-ghost{
+  width:100%;
+  background:transparent;
+  color:var(--soft);
+  border:1px solid var(--border);
+  padding:13px;
+  font-size:.9rem;
+  font-weight:700;
+  border-radius:12px;
+  cursor:pointer;
+  margin-top:10px;
+  transition:all .2s;
+}
+.btn-ghost:hover{border-color:var(--yellow);color:var(--yellow);}
+
+/* 진행도 바 */
+.progress-wrap{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:22px;
+  background:var(--card);
+  padding:14px 16px;
+  border-bottom:1px solid var(--border);
+  position:sticky;
+  top:0;
+  z-index:100;
+}
+.progress-track{
+  flex:1;
+  height:6px;
+  background:var(--border);
+  border-radius:99px;
+  overflow:hidden;
+}
+.progress-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--mint),var(--yellow));
+  border-radius:99px;
+  transition:width .35s ease;
+}
+.progress-label{
+  font-size:12px;
+  color:var(--soft);
+  font-weight:700;
+  white-space:nowrap;
+}
+
+/* 문제 카드 */
+.q-tag{
+  font-size:11px;
+  color:var(--mint);
+  font-weight:800;
+  letter-spacing:1px;
+  margin-bottom:8px;
+}
+.q-title{
+  font-size:clamp(1rem,4.5vw,1.2rem);
+  font-weight:800;
+  line-height:1.45;
+  margin-bottom:18px;
+}
+
+/* 메시지 시뮬레이션 박스 */
+.chat-box{
+  background:var(--navy2);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:18px;
+  font-size:13.5px;
+  line-height:1.6;
+}
+.chat-tag{
+  font-size:10.5px;
+  color:var(--red);
+  font-weight:800;
+  margin-bottom:6px;
+  letter-spacing:.3px;
+}
+.chat-link{color:#63b3ed;text-decoration:underline;word-break:break-all;}
+.chat-meta{margin-top:8px;font-size:10.5px;color:var(--soft);}
+.call-box{
+  background:var(--navy2);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:16px;
+  margin-bottom:18px;
+  font-size:13.5px;
+  line-height:1.6;
+}
+.call-box .caller{font-weight:700;color:var(--orange);margin-bottom:10px;font-size:12px;}
+
+/* 선택지 버튼 */
+.options{display:flex;flex-direction:column;gap:10px;}
+.opt-btn{
+  background:var(--card);
+  color:var(--text);
+  border:1px solid var(--border);
+  padding:14px 16px;
+  font-size:14px;
+  font-weight:600;
+  border-radius:12px;
+  cursor:pointer;
+  width:100%;
+  text-align:left;
+  line-height:1.45;
+  transition:all .15s;
+  font-family:inherit;
+}
+.opt-btn:hover{border-color:var(--mint);background:var(--card2);}
+.opt-btn:active{transform:scale(.98);}
+
+/* ═══ PAGE 2: 결과 보고서 ═══ */
+#page-result{background:var(--bg);}
+.result-wrap{max-width:480px;margin:0 auto;padding:24px 16px;}
+.result-header{text-align:center;margin-bottom:24px;}
+.result-brand{font-size:11px;font-weight:800;color:var(--mint);letter-spacing:3px;margin-bottom:12px;}
+
+/* 도넛 차트 */
+.ring-wrap{position:relative;width:160px;height:160px;margin:0 auto 16px;}
+.ring-label{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+.ring-percent{font-size:36px;font-weight:800;line-height:1;}
+.ring-sub{font-size:11px;color:var(--soft);margin-top:3px;font-weight:600;}
+.grade-chip{
+  display:inline-block;
+  padding:5px 16px;
+  border-radius:99px;
+  font-size:12px;
+  font-weight:800;
+  margin-bottom:12px;
+  letter-spacing:.3px;
+}
+.result-title{font-size:1.15rem;font-weight:800;margin-bottom:8px;}
+.result-msg{font-size:13.5px;color:var(--soft);line-height:1.7;margin-bottom:20px;text-align:left;}
+
+/* 암구호 연계 카드 */
+.crypto-callout{
+  background:linear-gradient(135deg,#1a2744,#1e3a4a);
+  border:1px solid var(--mint);
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:20px;
+  text-align:left;
+}
+.crypto-callout-tag{
+  font-size:10.5px;
+  color:var(--mint);
+  font-weight:800;
+  letter-spacing:1px;
+  margin-bottom:8px;
+}
+.crypto-callout-title{
+  font-size:15px;
+  font-weight:800;
+  color:var(--text);
+  margin-bottom:6px;
+  line-height:1.4;
+}
+.crypto-callout-desc{
+  font-size:12.5px;
+  color:var(--soft);
+  line-height:1.6;
+  margin-bottom:14px;
+}
+.btn-mint{
+  background:var(--mint);
+  color:#1a202c;
+  border:none;
+  padding:11px 20px;
+  font-size:13px;
+  font-weight:800;
+  border-radius:8px;
+  cursor:pointer;
+  transition:opacity .2s;
+}
+.btn-mint:hover{opacity:.85;}
+
+/* 리뷰 섹션 */
+.section-head{
+  font-size:13px;
+  font-weight:800;
+  color:var(--soft);
+  letter-spacing:.5px;
+  border-top:1px solid var(--border);
+  padding-top:16px;
+  margin:16px 0 12px;
+}
+.review-item{
+  display:flex;
+  gap:10px;
+  padding:12px 0;
+  border-bottom:1px solid var(--border);
+  align-items:flex-start;
+}
+.r-mark{
+  flex-shrink:0;width:20px;height:20px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;color:#fff;
+  margin-top:1px;
+}
+.r-good{background:var(--green);}
+.r-bad{background:var(--red);}
+.r-text{font-size:13px;line-height:1.55;}
+.r-tag{font-size:10.5px;color:var(--soft);font-weight:700;margin-bottom:2px;}
+.locked-row{
+  padding:12px 0;
+  text-align:center;
+  font-size:12px;
+  color:var(--soft);
+  border-bottom:1px solid var(--border);
+}
+
+/* 업셀 카드 */
+.upsell-card{
+  background:var(--card);
+  border:1px solid var(--yellow);
+  border-radius:14px;
+  padding:20px;
+  margin:8px 0 20px;
+  text-align:left;
+}
+.upsell-badge{
+  display:inline-block;
+  background:var(--yellow);
+  color:#1a202c;
+  font-size:10px;font-weight:800;
+  padding:3px 10px;border-radius:99px;
+  margin-bottom:10px;letter-spacing:.3px;
+}
+.upsell-title{font-size:16px;font-weight:800;margin-bottom:8px;line-height:1.4;}
+.upsell-list{font-size:13px;color:var(--soft);line-height:1.9;list-style:none;margin-bottom:16px;}
+.upsell-list li{padding-left:20px;position:relative;}
+.upsell-list li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:800;}
+.price-row{display:flex;gap:10px;margin-bottom:14px;}
+.price-opt{
+  flex:1;border:1.5px solid var(--border);
+  border-radius:12px;padding:12px 8px;
+  text-align:center;cursor:pointer;transition:.2s;
+  background:var(--card2);
+}
+.price-opt:hover,.price-opt.selected{border-color:var(--yellow);}
+.price-opt .pname{font-size:11px;color:var(--soft);font-weight:700;margin-bottom:3px;}
+.price-opt .pprice{font-size:17px;font-weight:800;color:var(--text);}
+.price-opt .pusdt{font-size:10px;color:var(--yellow);margin-top:2px;}
+.btn-yellow{
+  width:100%;background:var(--yellow);color:#1a202c;
+  border:none;padding:13px;font-size:14px;font-weight:800;
+  border-radius:10px;cursor:pointer;transition:opacity .2s;
+  font-family:inherit;
+}
+.btn-yellow:hover{opacity:.88;}
+
+/* 패턴 분석 바 */
+.pattern-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.pattern-label{width:82px;flex-shrink:0;font-size:11.5px;font-weight:700;}
+.pattern-track{flex:1;height:8px;background:var(--border);border-radius:99px;overflow:hidden;}
+.pattern-fill{height:100%;border-radius:99px;transition:width 1s ease;}
+.pattern-pct{width:36px;flex-shrink:0;font-size:11.5px;font-weight:700;text-align:right;color:var(--soft);}
+
+/* 취약 패턴 카드 */
+.weak-card{
+  background:rgba(252,129,129,.1);
+  border-left:3px solid var(--red);
+  border-radius:10px;padding:14px;
+  margin-bottom:18px;
+}
+.weak-tag{font-size:11px;color:var(--red);font-weight:800;margin-bottom:5px;}
+.weak-text{font-size:13px;line-height:1.6;color:var(--soft);}
+.guide-box{
+  background:var(--navy2);border:1px solid var(--border);
+  border-radius:12px;padding:14px;
+  font-size:13px;line-height:1.7;color:var(--soft);
+  margin-bottom:20px;
+}
+.msg-box{
+  background:var(--navy2);border:1px solid var(--border);
+  border-radius:12px;padding:14px;
+  font-size:13px;line-height:1.7;
+  white-space:pre-wrap;margin-bottom:12px;
+}
+.share-row{display:flex;gap:10px;margin-bottom:10px;}
+.btn-outline{
+  flex:1;background:transparent;color:var(--text);
+  border:1px solid var(--border);padding:11px 8px;
+  font-size:12.5px;font-weight:700;border-radius:10px;
+  cursor:pointer;transition:all .2s;text-align:center;
+  font-family:inherit;
+}
+.btn-outline:hover{border-color:var(--mint);color:var(--mint);}
+
+/* 신고기관 배너 */
+.agency-banner{
+  background:rgba(252,129,129,.12);
+  border:1px solid var(--red);
+  border-radius:12px;padding:14px 16px;
+  margin:16px 0;display:flex;
+  align-items:center;gap:12px;
+  cursor:pointer;
+  transition:background .2s;
+}
+.agency-banner:hover{background:rgba(252,129,129,.2);}
+.agency-banner-icon{font-size:24px;flex-shrink:0;}
+.agency-banner-text .ab-title{font-size:13.5px;font-weight:800;margin-bottom:3px;}
+.agency-banner-text .ab-sub{font-size:11.5px;color:var(--soft);}
+.agency-arrow{margin-left:auto;color:var(--soft);font-size:18px;}
+
+/* 모달 */
+.modal-bg{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;align-items:center;justify-content:center;
+  z-index:600;padding:20px;
+}
+.modal-bg.open{display:flex;}
+.modal-box{
+  background:var(--card);
+  border-radius:20px;padding:26px 20px;
+  max-width:360px;width:100%;
+  border:1px solid var(--border);
+}
+.modal-plan-name{font-size:18px;font-weight:800;margin-bottom:16px;}
+.pay-method{
+  border:1.5px solid var(--border);border-radius:12px;
+  padding:14px;margin-bottom:10px;cursor:pointer;
+  display:flex;justify-content:space-between;align-items:center;
+  transition:.2s;background:var(--card2);
+}
+.pay-method.selected{border-color:var(--yellow);}
+.pay-method .pm-name{font-size:13px;font-weight:700;}
+.pay-method .pm-sub{font-size:11px;color:var(--soft);margin-top:2px;}
+.pay-method .pm-price{font-size:16px;font-weight:800;color:var(--yellow);}
+.dev-note{
+  background:var(--navy2);border-radius:10px;
+  padding:10px 12px;font-size:11px;color:var(--soft);
+  line-height:1.6;margin:12px 0;
+}
+
+/* ═══ PAGE 3: 암구호 ═══ */
+#page-crypto{background:var(--bg);}
+.crypto-wrap{max-width:480px;margin:0 auto;padding:24px 16px;}
+.crypto-header{text-align:center;margin-bottom:24px;}
+.crypto-header h1{
+  font-size:clamp(1.2rem,5vw,1.5rem);
+  color:var(--yellow);font-weight:800;
+  margin-bottom:8px;letter-spacing:.5px;
+}
+.crypto-header p{font-size:13px;color:var(--soft);line-height:1.6;}
+.guide-card{
+  background:var(--navy2);
+  border-left:4px solid var(--yellow);
+  border-radius:8px;padding:14px;
+  margin-bottom:24px;font-size:13.5px;line-height:1.7;
+}
+.guide-card strong{color:var(--red);}
+.cw-display{display:flex;gap:12px;margin-bottom:24px;}
+.cw-box{
+  flex:1;min-width:0;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;padding:16px 12px;text-align:center;
+}
+.cw-label{font-size:11px;color:var(--soft);font-weight:700;margin-bottom:8px;line-height:1.4;}
+.cw-word{
+  font-size:clamp(1.4rem,7vw,2rem);
+  font-weight:800;color:var(--mint);
+  letter-spacing:1px;margin-bottom:5px;line-height:1.2;
+}
+.cw-meaning{font-size:11.5px;color:var(--soft);line-height:1.4;}
+.btn-refresh{
+  width:100%;background:var(--yellow);color:#1a202c;
+  border:none;padding:14px;font-size:.95rem;font-weight:800;
+  border-radius:12px;cursor:pointer;transition:background .2s;
+  margin-bottom:12px;font-family:inherit;
+}
+.btn-refresh:hover{background:#d69e2e;}
+@media(max-width:400px){
+  .cw-display{flex-direction:column;}
+  .cw-word{font-size:2rem;}
+}
+
+/* ═══ PAGE 4: 신고·지원 ═══ */
+#page-agency{background:var(--bg);}
+.agency-wrap{max-width:480px;margin:0 auto;padding:24px 16px;}
+.agency-page-title{
+  font-size:clamp(1.1rem,5vw,1.4rem);
+  font-weight:800;margin-bottom:6px;
+}
+.agency-page-sub{font-size:13px;color:var(--soft);line-height:1.6;margin-bottom:24px;}
+.step-section{
+  background:rgba(252,129,129,.1);
+  border:1px solid var(--red);
+  border-radius:14px;padding:18px;
+  margin-bottom:24px;
+}
+.step-title{font-size:14px;font-weight:800;color:var(--red);margin-bottom:14px;}
+.step-item{
+  display:flex;gap:12px;align-items:flex-start;
+  margin-bottom:12px;
+}
+.step-num{
+  flex-shrink:0;width:24px;height:24px;
+  background:var(--red);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;color:#fff;
+}
+.step-text{font-size:13px;line-height:1.6;}
+.step-text strong{color:var(--text);}
+.contact-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:16px;margin-bottom:12px;
+  display:flex;align-items:center;gap:14px;
+}
+.contact-icon{font-size:28px;flex-shrink:0;}
+.contact-info{flex:1;}
+.contact-name{font-size:14px;font-weight:800;margin-bottom:2px;}
+.contact-desc{font-size:12px;color:var(--soft);margin-bottom:6px;line-height:1.4;}
+.contact-num{
+  display:inline-block;
+  background:var(--navy2);
+  border:1px solid var(--border);
+  border-radius:8px;padding:5px 12px;
+  font-size:15px;font-weight:800;
+  color:var(--yellow);letter-spacing:1px;
+}
+.call-link{text-decoration:none;color:inherit;display:block;}
+.call-link:hover .contact-card{border-color:var(--yellow);}
+
+.hidden{display:none!important;}
+.mt16{margin-top:16px;}
+</style>
+</head>
+<body>
+
+<!-- ═══ PAGE 1: 피싱 테스트 ═══ -->
+<div id="page-test" class="page active">
+  <!-- 시작 화면 -->
+  <div id="start-page" class="test-wrap">
+    <div class="start-hero">
+      <div class="start-brand">가족 안심 · 피싱 테스트</div>
+      <h1 class="start-title">우리 가족은<br><em>보이스피싱에 안전</em>한가요?</h1>
+      <p class="start-desc">더 정교해진 AI 사기 전화와 문자,<br>실제 신고 사례를 바탕으로 만든<br><strong style="color:var(--text)">15가지 상황</strong>으로 직접 테스트해 보세요.</p>
+    </div>
+    <div class="start-stats">
+      <div class="stat-box">
+        <div class="stat-num">15</div>
+        <div class="stat-label">실전 시뮬레이션 문항</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">5</div>
+        <div class="stat-label">사기 패턴 유형 분석</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">3분</div>
+        <div class="stat-label">예상 소요 시간</div>
+      </div>
+    </div>
+    <button class="btn-main" onclick="startTest()">🛡️ 테스트 시작하기</button>
+    <button class="btn-ghost" onclick="switchPage('agency')">📞 피해를 당하셨나요? 신고·지원 안내</button>
+    <p style="font-size:11px;color:var(--soft);margin-top:16px;text-align:center;line-height:1.6;">
+      등장하는 기관명·번호·링크는 모두 가상이며,<br>실제 신고된 수법의 패턴만을 교육 목적으로 재구성했습니다.
+    </p>
+  </div>
+
+  <!-- 문제 화면 -->
+  <div id="question-page" class="hidden">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-label" id="progress-label">1 / 15</div>
+    </div>
+    <div class="test-wrap" style="padding-top:8px;">
+      <div id="question-content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 2: 결과 보고서 ═══ -->
+<div id="page-result" class="page">
+  <div class="result-wrap">
+    <div class="result-header">
+      <div class="result-brand">테스트 결과 보고서</div>
+      <div class="ring-wrap">
+        <svg width="160" height="160" viewBox="0 0 160 160">
+          <circle cx="80" cy="80" r="70" fill="none" stroke="#2d3748" stroke-width="14"/>
+          <circle id="ring-fg" cx="80" cy="80" r="70" fill="none" stroke="#4fd1c5" stroke-width="14"
+            stroke-linecap="round" stroke-dasharray="440" stroke-dashoffset="440"
+            transform="rotate(-90 80 80)" style="transition:stroke-dashoffset 1s ease;"/>
+        </svg>
+        <div class="ring-label">
+          <div class="ring-percent" id="ring-percent">0%</div>
+          <div class="ring-sub">예상 생존율</div>
+        </div>
+      </div>
+      <div id="grade-chip" class="grade-chip">분석 중</div>
+      <h2 class="result-title" id="result-title"></h2>
+      <p class="result-msg" id="result-msg"></p>
+    </div>
+
+    <!-- 신고기관 배너 -->
+    <div class="agency-banner" onclick="switchPage('agency')">
+      <div class="agency-banner-icon">🚨</div>
+      <div class="agency-banner-text">
+        <div class="ab-title">피해를 입으셨거나 의심되시나요?</div>
+        <div class="ab-sub">신고 기관 및 지원 연락처 바로가기</div>
+      </div>
+      <div class="agency-arrow">›</div>
+    </div>
+
+    <!-- 무료 리뷰 3문항 -->
+    <div class="section-head">📋 문항별 분석 (무료 공개 3문항)</div>
+    <div id="review-list-free"></div>
+
+    <!-- 가족 암구호 연계 카드 -->
+    <div class="crypto-callout" id="crypto-callout-card">
+      <div class="crypto-callout-tag">🔑 가족 사칭 피싱 대응 솔루션</div>
+      <div class="crypto-callout-title">AI가 목소리를 흉내내도<br>우리 가족만 아는 암구호로 확인하세요</div>
+      <div class="crypto-callout-desc">가족 사칭 보이스피싱은 이제 AI 음성합성으로 목소리까지 복제해요. 가족끼리 미리 정해둔 암구호(문어/답어)로 진짜 가족인지 즉시 확인할 수 있어요.</div>
+      <button class="btn-mint" onclick="switchPage('crypto')">🔑 지금 암구호 설정하기</button>
+    </div>
+
+    <!-- 업셀 카드 (무료 사용자) -->
+    <div id="upsell-section">
+      <div class="upsell-card">
+        <span class="upsell-badge">PREMIUM</span>
+        <div class="upsell-title">내 취약 패턴을 정확히 알고 싶다면?</div>
+        <ul class="upsell-list">
+          <li>5가지 사기 패턴별 취약도 분석</li>
+          <li>가장 위험한 패턴 맞춤 행동 가이드</li>
+          <li>15문항 전체 상세 리뷰</li>
+          <li>카카오톡·텔레그램 공유 카드 + PDF</li>
+        </ul>
+        <div class="price-row">
+          <div class="price-opt" id="price-basic" onclick="selectPlan('basic')">
+            <div class="pname">프리미엄</div>
+            <div class="pprice">1,900원</div>
+            <div class="pusdt">≈ 1.9 USDT</div>
+          </div>
+          <div class="price-opt" id="price-plus" onclick="selectPlan('plus')">
+            <div class="pname">프리미엄 플러스</div>
+            <div class="pprice">3,900원</div>
+            <div class="pusdt">≈ 3.9 USDT</div>
+          </div>
+        </div>
+        <button class="btn-yellow" onclick="openPayModal()">선택한 리포트 보기</button>
+      </div>
+    </div>
+
+    <!-- 프리미엄 콘텐츠 -->
+    <div id="premium-section" class="hidden">
+      <div class="section-head">📊 사기 패턴별 취약도</div>
+      <div id="pattern-bars"></div>
+      <div id="weak-pattern-card" class="mt16"></div>
+      <div class="section-head">🛡️ 맞춤 행동 가이드</div>
+      <div class="guide-box" id="guide-box"></div>
+      <div class="section-head">📝 15문항 전체 리뷰</div>
+      <div id="review-list-full"></div>
+      <div id="plus-only-section" class="hidden">
+        <div class="section-head">💌 부모님께 보내는 안내 메시지</div>
+        <div class="msg-box" id="msg-template"></div>
+        <button class="btn-outline" onclick="copyTemplate()" style="width:100%;margin-bottom:20px;">메시지 복사하기</button>
+      </div>
+      <div class="section-head">📤 결과 공유</div>
+      <div class="share-row">
+        <button class="btn-outline" onclick="shareKakao()">카카오톡</button>
+        <button class="btn-outline" onclick="shareTelegram()">텔레그램</button>
+      </div>
+      <div class="share-row">
+        <button class="btn-outline" onclick="downloadImage()">이미지 저장</button>
+        <button class="btn-outline" onclick="downloadPdf()">PDF 저장</button>
+      </div>
+    </div>
+
+    <button class="btn-ghost mt16" onclick="restartTest()" style="width:100%;">🔄 테스트 다시 하기</button>
+    <p style="font-size:11px;color:var(--soft);text-align:center;margin-top:14px;line-height:1.6;">
+      부모님께도 이 테스트를 공유해보세요.<br>가족의 디지털 안전을 함께 지켜요.
+    </p>
+  </div>
+</div>
+
+<!-- 결제 모달 -->
+<div id="pay-modal" class="modal-bg">
+  <div class="modal-box">
+    <div style="font-size:11px;color:var(--mint);font-weight:800;letter-spacing:1px;margin-bottom:6px;">결제 수단 선택</div>
+    <div class="modal-plan-name" id="pay-modal-plan"></div>
+    <div class="pay-method" id="pay-card" onclick="selectPayMethod('card')">
+      <div><div class="pm-name">신용/체크카드 · 카카오페이</div><div class="pm-sub">PG사 (토스페이먼츠 등) 연동</div></div>
+      <div class="pm-price" id="pay-amount-krw"></div>
+    </div>
+    <div class="pay-method" id="pay-usdt" onclick="selectPayMethod('usdt')">
+      <div><div class="pm-name">USDT (TRC-20)</div><div class="pm-sub">암호화폐 결제 게이트웨이</div></div>
+      <div class="pm-price" id="pay-amount-usdt"></div>
+    </div>
+    <div class="dev-note">⚙️ 개발 노트: 실제 서비스에서는 PG사 또는 암호화폐 게이트웨이 API를 연동합니다.</div>
+    <button class="btn-yellow" onclick="confirmPayment()" style="margin-bottom:10px;">결제 진행 (시뮬레이션)</button>
+    <button class="btn-outline" onclick="closePayModal()" style="width:100%;">취소</button>
+  </div>
+</div>
+
+<!-- 공유카드 캡처용 -->
+<div id="share-card-capture" style="position:fixed;top:-9999px;left:-9999px;width:360px;background:linear-gradient(135deg,#1a202c,#2d3748);color:#fff;padding:36px 28px;text-align:center;font-family:Apple SD Gothic Neo,Malgun Gothic,sans-serif;">
+  <div style="font-size:11px;letter-spacing:2px;color:#ecc94b;font-weight:700;margin-bottom:18px;">가족 안심 · 피싱 테스트</div>
+  <div class="sc-percent" id="sc-percent" style="font-size:52px;font-weight:800;"></div>
+  <div style="font-size:12px;color:#a0aec0;margin-bottom:14px;">예상 피싱 생존율</div>
+  <div id="sc-grade" style="display:inline-block;background:rgba(255,255,255,.1);padding:5px 16px;border-radius:99px;font-size:13px;font-weight:700;margin-bottom:16px;"></div>
+  <div id="sc-copy" style="font-size:13.5px;line-height:1.6;color:#e2e8f0;margin-bottom:6px;"></div>
+  <div style="font-size:10px;color:#718096;margin-top:16px;">나와 우리 부모님의 피싱 생존율 테스트</div>
+</div>
+
+<!-- ═══ PAGE 3: 암구호 ═══ -->
+<div id="page-crypto" class="page">
+  <div class="crypto-wrap">
+    <div class="crypto-header">
+      <h1>가족 확인 안심 암구호</h1>
+      <p>전화로 급하게 돈이나 정보를 요구한다면<br>이 암구호로 진짜 가족인지 먼저 확인하세요</p>
+    </div>
+    <div class="guide-card">
+      <strong>🚨 사용 방법:</strong><br>
+      1. 전화를 <strong>받은 가족</strong>이 화면의 <strong>[문어]</strong>를 외칩니다<br>
+      2. 전화를 <strong>건 상대방</strong>에게 미리 약속된 <strong>[답어]</strong>를 말하게 합니다<br>
+      3. 답어를 모르거나 틀리면, 목소리가 똑같아도 <strong>즉시 전화를 끊으세요</strong>
+    </div>
+    <div class="cw-display">
+      <div class="cw-box">
+        <div class="cw-label">1. 내가 외치는 말<br>(문어)</div>
+        <div id="qWord" class="cw-word">로드 중</div>
+        <div id="qMeaning" class="cw-meaning"></div>
+      </div>
+      <div class="cw-box">
+        <div class="cw-label">2. 상대가 대답할 말<br>(답어)</div>
+        <div id="aWord" class="cw-word">로드 중</div>
+        <div id="aMeaning" class="cw-meaning"></div>
+      </div>
+    </div>
+    <button class="btn-refresh" onclick="mixFamilyCrypto()">🔄 새 암구호 생성</button>
+    <button class="btn-ghost" onclick="switchPage('result'); if(!resultUnlocked) switchPage('test');">← 결과 보고서로 돌아가기</button>
+
+    <div style="margin-top:24px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;">
+      <div style="font-size:12px;font-weight:800;color:var(--soft);margin-bottom:12px;letter-spacing:.5px;">💡 암구호 활용 팁</div>
+      <div style="font-size:13px;color:var(--soft);line-height:1.7;">
+        • 가족끼리 <strong style="color:var(--text)">정기적으로 암구호를 바꾸세요</strong> (월 1회 권장)<br>
+        • 암구호는 <strong style="color:var(--text)">절대 문자나 카톡으로 공유하지 마세요</strong><br>
+        • 가족 모두가 모인 자리에서 직접 공유하는 것이 가장 안전해요<br>
+        • 부모님께 미리 <strong style="color:var(--text)">연습을 함께 해두세요</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 4: 신고·지원 ═══ -->
+<div id="page-agency" class="page">
+  <div class="agency-wrap">
+    <h1 class="agency-page-title">🚨 보이스피싱 신고·지원</h1>
+    <p class="agency-page-sub">피해를 당하셨거나 의심스러운 상황이라면<br>아래 기관에 즉시 연락하세요.</p>
+
+    <!-- 즉시 행동 가이드 -->
+    <div class="step-section">
+      <div class="step-title">⚡ 피해 발생 시 즉시 해야 할 3가지</div>
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-text"><strong>해당 은행에 즉시 전화</strong><br>피해 계좌로 이체한 경우 해당 은행 고객센터에 전화해 지급정지를 요청하세요. 빠를수록 환급 가능성이 높아요.</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-text"><strong>경찰에 피해 신고</strong><br>가까운 경찰서 또는 사이버범죄 신고 전화(182)로 신고해 사건번호를 받으세요.</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-text"><strong>피해환급금 신청</strong><br>사건번호를 갖고 금융감독원(1332) 또는 은행을 통해 피해환급금 신청을 진행하세요.</div>
+      </div>
+    </div>
+
+    <!-- 기관 연락처 -->
+    <div style="font-size:13px;font-weight:800;color:var(--soft);letter-spacing:.5px;margin-bottom:14px;">📞 기관별 연락처</div>
+
+    <a href="tel:112" class="call-link">
+      <div class="contact-card">
+        <div class="contact-icon">👮</div>
+        <div class="contact-info">
+          <div class="contact-name">경찰청 (긴급신고)</div>
+          <div class="contact-desc">보이스피싱 피해 긴급 신고<br>24시간 운영</div>
+          <div class="contact-num">112</div>
+        </div>
+      </div>
+    </a>
+
+    <a href="tel:182" class="call-link">
+      <div class="contact-card">
+        <div class="contact-icon">🔍</div>
+        <div class="contact-info">
+          <div class="contact-name">경찰청 사이버수사대</div>
+          <div class="contact-desc">사이버 범죄·보이스피싱 전담 신고<br>온라인 신고: cyberbureau.go.kr</div>
+          <div class="contact-num">182</div>
+        </div>
+      </div>
+    </a>
+
+    <a href="tel:1332" class="call-link">
+      <div class="contact-card">
+        <div class="contact-icon">🏦</div>
+        <div class="contact-info">
+          <div class="contact-name">금융감독원</div>
+          <div class="contact-desc">금융 피해 신고 및 피해환급금 신청<br>평일 09:00 ~ 18:00</div>
+          <div class="contact-num">1332</div>
+        </div>
+      </div>
+    </a>
+
+    <a href="tel:118" class="call-link">
+      <div class="contact-card">
+        <div class="contact-icon">🌐</div>
+        <div class="contact-info">
+          <div class="contact-name">한국인터넷진흥원 (KISA)</div>
+          <div class="contact-desc">스미싱·악성앱·해킹 피해 신고<br>평일 09:00 ~ 18:00</div>
+          <div class="contact-num">118</div>
+        </div>
+      </div>
+    </a>
+
+    <a href="tel:1301" class="call-link">
+      <div class="contact-card">
+        <div class="contact-icon">⚖️</div>
+        <div class="contact-info">
+          <div class="contact-name">검찰청</div>
+          <div class="contact-desc">검찰·경찰 사칭 피싱 확인 및 신고<br>(검찰은 전화로 이체를 요구하지 않아요)</div>
+          <div class="contact-num">1301</div>
+        </div>
+      </div>
+    </a>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:8px;">
+      <div style="font-size:12.5px;font-weight:800;color:var(--soft);margin-bottom:10px;">📌 참고 사항</div>
+      <div style="font-size:12.5px;color:var(--soft);line-height:1.7;">
+        • <strong style="color:var(--text)">지급정지</strong>는 이체 후 72시간 이내 신청이 가장 효과적이에요<br>
+        • <strong style="color:var(--text)">악성 앱</strong>이 설치된 경우 공장 초기화가 필요할 수 있어요<br>
+        • 개인정보가 유출된 경우 <strong style="color:var(--text)">금융결제원(1577-5500)</strong>에 명의도용 차단 신청<br>
+        • 심리적 충격이 있다면 <strong style="color:var(--text)">정신건강 위기상담(1577-0199)</strong>을 이용하세요
+      </div>
+    </div>
+
+    <button class="btn-ghost mt16" onclick="switchPage('test')" style="width:100%;">🛡️ 피싱 예방 테스트 해보기</button>
+  </div>
+</div>
+
+<!-- ═══ 하단 네비게이션 ═══ -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="switchPage('test')" id="nav-test">
+    <span class="nav-icon">🛡️</span>
+    <span class="nav-label">테스트</span>
+  </button>
+  <button class="nav-btn nav-locked" onclick="switchPage('result')" id="nav-result">
+    <span class="nav-icon">📊</span>
+    <span class="nav-label">결과</span>
+  </button>
+  <button class="nav-btn" onclick="switchPage('crypto')" id="nav-crypto">
+    <span class="nav-icon">🔑</span>
+    <span class="nav-label">암구호</span>
+  </button>
+  <button class="nav-btn" onclick="switchPage('agency')" id="nav-agency">
+    <span class="nav-icon">📞</span>
+    <span class="nav-label">신고·지원</span>
+  </button>
+</nav>
+
+<script>
+/* ═══ 페이지 전환 ═══ */
+let resultUnlocked = false;
+
+function switchPage(name) {
+  if (name === 'result' && !resultUnlocked) { switchPage('test'); return; }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+/* ═══ 암구호 로직 ═══ */
+const CRYPTO_Q = [
+  {word:"가람",meaning:"강의 순우리말"},{word:"나래",meaning:"날개의 순우리말"},
+  {word:"다솜",meaning:"사랑의 옛말"},{word:"라온",meaning:"즐거운의 순우리말"},
+  {word:"마루",meaning:"산의 꼭대기, 정상"},{word:"바람",meaning:"원하는 대로의 소망"},
+  {word:"아라",meaning:"바다의 우리말 표현"},{word:"시나",meaning:"모르는 사이에 조금씩"},
+  {word:"미르",meaning:"용(龍)의 순우리말"},{word:"그린",meaning:"동경하는 마음"},
+  {word:"도담",meaning:"아이가 잘 자라는 모양"},{word:"새론",meaning:"늘 새로운 사람이 되라"},
+  {word:"하람",meaning:"하늘이 내린 소중한 사람"},{word:"노을",meaning:"하늘이 붉게 물드는 현상"},
+  {word:"윤슬",meaning:"반짝이는 잔물결"},{word:"벼리",meaning:"일의 뼈대, 그물의 코"},
+  {word:"혜윰",meaning:"생각의 순우리말"},{word:"소미",meaning:"정성스럽게 맺힌 열매"},
+  {word:"다은",meaning:"다사롭고 은은한"},{word:"이솔",meaning:"소나무처럼 푸르고 꿋꿋하게"},
+  {word:"늘봄",meaning:"언제나 봄처럼 따뜻하게"},{word:"새솔",meaning:"새로 난 소나무의 푸르름"},
+  {word:"한울",meaning:"우주, 큰 울타리"},{word:"나봄",meaning:"봄에 태어난 아이"},
+  {word:"도란",meaning:"정답게 이야기하는 모양"},{word:"든해",meaning:"집 안 가득 들어온 햇빛"},
+  {word:"소아",meaning:"소담하고 아름다운"},{word:"잔디",meaning:"끈질긴 생명력의 풀"},
+  {word:"하늬",meaning:"서쪽에서 부는 시원한 바람"},{word:"단미",meaning:"달콤하고 사랑스러운 여자"},
+  {word:"토리",meaning:"작지만 야무지고 옹골찬 뜻"},{word:"보늬",meaning:"겉껍질 속 얇은 속껍질"},
+  {word:"새나",meaning:"새가 날아오르듯 자유로운"},{word:"하나",meaning:"이 세상에 오직 단 하나"},
+  {word:"누리",meaning:"세상의 순우리말"},{word:"가온",meaning:"가운데, 세상의 중심"},
+  {word:"솔찬",meaning:"소나무처럼 옹골차게 가득 찬"},{word:"소담",meaning:"풍성하여 먹음직스러운 모양"},
+  {word:"달래",meaning:"봄의 생기를 주는 나물"},{word:"다올",meaning:"하는 일마다 복이 다 올"},
+  {word:"나린",meaning:"하늘이 내린의 줄임말"},{word:"슬아",meaning:"슬기롭고 아름다운"},
+  {word:"아사",meaning:"신선하고 깨끗한 아침 옛말"},{word:"우솔",meaning:"우람하게 자란 소나무"}
+];
+const CRYPTO_A = [
+  {word:"미리내",meaning:"은하수의 순우리말"},{word:"도란도",meaning:"정답게 이야기하는 모양"},
+  {word:"시나브",meaning:"모르는 사이에 조금씩"},{word:"다소니",meaning:"사랑하는 사람의 순우리말"},
+  {word:"아스라",meaning:"기억이 가물가물하고 아스라한"},{word:"안다미",meaning:"그릇에 넘치도록 많게"},
+  {word:"하제나",meaning:"내일처럼 다가올 희망"},{word:"바라봄",meaning:"따뜻한 시선을 보내다"},
+  {word:"새하마",meaning:"새얗고 맑은 마음"},{word:"한내글",meaning:"큰 시내처럼 끝없이 흐르는 글"},
+  {word:"푸르내",meaning:"맑고 푸른 물이 흐르는 시내"},{word:"보람찬",meaning:"보람이 가득하여 뿌듯함"},
+  {word:"가람휘",meaning:"강과 넓은 벌판의 조합"},{word:"나르샤",meaning:"날아오르다의 옛말"},
+  {word:"가온길",meaning:"정직하고 바른 가운데 길"},{word:"꽃가람",meaning:"꽃이 핀 강가"},
+  {word:"늘해랑",meaning:"늘 해와 함께 살아가는 밝은이"},{word:"다솔길",meaning:"어린 소나무들이 곧게 자란 길"},
+  {word:"도담도",meaning:"아이가 아무 탈 없이 자라는 모양"},{word:"마루한",meaning:"으뜸가는 리더, 최고 우두머리"},
+  {word:"벼리마",meaning:"중심이 되는 일의 뼈대와 마음"},{word:"새슬아",meaning:"새롭고 슬기로우며 아름다운"},
+  {word:"소담한",meaning:"생김새가 탐스럽고 풍성한"},{word:"온누리",meaning:"온 세상 전체를 뜻하는 말"},
+  {word:"하람빛",meaning:"하늘이 내린 소중한 사람의 빛"},{word:"한빛가",meaning:"세상을 이끄는 환하고 큰 빛"},
+  {word:"흰가람",meaning:"맑고 깨끗하게 흐르는 강"},{word:"그린나",meaning:"그리운 나래, 꿈을 그리는 나"},
+  {word:"길가온",meaning:"길의 한가운데, 올바른 행보"},{word:"꽃내음",meaning:"꽃의 향기롭고 은은한 냄새"},
+  {word:"나래울",meaning:"날개가 펼쳐진 큰 울타리"},{word:"다사롬",meaning:"따뜻하고 다사로운 상태나 성품"},
+  {word:"든솔길",meaning:"든든한 소나무가 늘어선 길"},{word:"마루치",meaning:"하늘이나 산꼭대기의 소년 영웅"},
+  {word:"별하랑",meaning:"별처럼 높고 빛나는 사람이 됨"},{word:"새론길",meaning:"늘 새롭게 나아가는 발전적 길"},
+  {word:"소아름",meaning:"소담하고 아름다운 한 아름의 선물"},{word:"아리아",meaning:"요정이나 고운 사람을 부르는 말"},
+  {word:"오롯이",meaning:"모자람 없이 온전하고 완벽하게"},{word:"우람찬",meaning:"풍채가 크고 위엄이 넘치는 모양"},
+  {word:"으뜸이",meaning:"가장 뛰어난 첫째가는 사람"},{word:"찬누리",meaning:"복이 가득 찬 온 세상"},
+  {word:"한가람",meaning:"크고 넓은 한강과 같은 강"},{word:"해오름",meaning:"해가 힘차게 떠오름"},
+  {word:"희나리",meaning:"덜 마른 장작, 가공하지 않은 순수"},{word:"늘솔길",meaning:"언제나 솔바람이 부는 상쾌한 길"}
+];
+function mixFamilyCrypto() {
+  const q = CRYPTO_Q[Math.floor(Math.random()*CRYPTO_Q.length)];
+  const a = CRYPTO_A[Math.floor(Math.random()*CRYPTO_A.length)];
+  document.getElementById('qWord').textContent = q.word;
+  document.getElementById('qMeaning').textContent = q.meaning;
+  document.getElementById('aWord').textContent = a.word;
+  document.getElementById('aMeaning').textContent = a.meaning;
+}
+window.onload = mixFamilyCrypto;
+
+/* ═══ 피싱 테스트 로직 (온기) ═══ */
+
+/* ───────────────────────────────
+   문항 데이터 (15문항)
+   pattern: 'link' 링크클릭형 | 'info' 개인정보요구형 | 'money' 금전송금형 | 'call' 통화유도형 | 'pressure' 압박감정형
+   options[].score: 1(안전) ~ 0(위험)
+─────────────────────────────── */
+const QUESTIONS = [
+  {
+    tag: 'Q1. 공공기관 사칭', pattern:'link',
+    title: '이런 문자가 온다면<br>어떻게 하시겠습니까?',
+    type: 'sms', sender: '[국민안심보험]',
+    body: '일반 검진 대상자 통보서 발송 완료. 미수령 확인 및 상세 내용 조회는 아래 주소에서 확인해 주세요.',
+    link: 'gukmin-health.co.kr.info-detail.net/g/3820',
+    options: [
+      { text: '문자를 무시하고 기관 공식 대표번호로 직접 전화해 확인한다.', score: 1,
+        feedback: '문자 속 링크·번호 대신 공식 대표번호로 직접 확인하는 것이 가장 안전한 방법이에요.' },
+      { text: '"내가 검진 대상자였나?" 하고 링크를 눌러본다.', score: 0,
+        feedback: '공식 도메인이 아닌 변형 주소(...co.kr.info-detail.net)는 가장 흔한 위장 패턴이에요.' },
+      { text: '의심스럽지만 일단 캡처해두고 가족에게 물어본다.', score: 0.6,
+        feedback: '클릭하지 않은 점은 좋아요. 다만 확인은 공식 채널을 통해 하는 습관을 들여보세요.' },
+    ]
+  },
+  {
+    tag: 'Q2. 택배 배송 사칭', pattern:'link',
+    title: '배송 조회를 위해<br>이 링크를 누르시겠습니까?',
+    type: 'sms', sender: '[늘빠른택배]',
+    body: '고객님 주소 오류로 배송이 보류되었습니다. 24시간 내 미수정시 반송 처리됩니다.',
+    link: 'nulbbareun-delivery.cn/track?id=29381',
+    options: [
+      { text: '주소 오류라니 급한 마음에 바로 링크를 눌러 수정한다.', score: 0,
+        feedback: '".cn" 등 낯선 국가 도메인과 "24시간 내" 같은 압박 문구는 전형적인 스미싱 신호예요.' },
+      { text: '택배사에 전화해보는데, 문자에 적힌 번호로 건다.', score: 0.3,
+        feedback: '확인 시도는 좋지만, 문자에 적힌 번호 자체가 가짜일 수 있어요. 검색을 통해 공식 번호를 찾아야 해요.' },
+      { text: '주문한 적 없는 택배면 무시하고, 실제 주문 내역을 앱에서 직접 확인한다.', score: 1,
+        feedback: '문자 속 링크 대신 본인이 직접 설치한 앱·사이트에서 확인하는 습관이 중요해요.' },
+    ]
+  },
+  {
+    tag: 'Q3. 금융기관 보이스피싱', pattern:'call',
+    title: '이런 전화를 받는다면<br>어떻게 대응하시겠습니까?',
+    type: 'call', callerLabel: '발신: 010-2xxx-9981 (저장되지 않은 번호)',
+    callBody: '"안심카드 보안팀입니다. 고객님 명의로 해외에서 350만원 결제가 시도되어 차단했습니다. 본인 확인을 위해 카드 뒷면 번호와 비밀번호 앞 2자리를 말씀해주세요."',
+    options: [
+      { text: '일단 끊고, 카드 뒷면에 적힌 고객센터 번호로 직접 전화한다.', score: 1,
+        feedback: '전화를 끊고 공식 번호로 재발신하는 것이 보이스피싱을 막는 핵심 행동이에요.' },
+      { text: '해외 결제라니 놀라서 빠르게 정보를 알려준다.', score: 0,
+        feedback: '어떤 금융기관도 전화로 카드 번호 전체나 비밀번호를 묻지 않아요. 이는 100% 보이스피싱 패턴이에요.' },
+      { text: '의심되어 "그럼 어디 소속이냐"고 캐묻다가 정보 일부를 흘린다.', score: 0.2,
+        feedback: '의심한 것은 좋지만, 대화를 이어갈수록 설계된 각본에 끌려갈 위험이 커져요. 바로 끊는 것이 정답이에요.' },
+    ]
+  },
+  {
+    tag: 'Q4. 지인 사칭(메신저)', pattern:'money',
+    title: '딸이 보낸 듯한 메시지,<br>바로 도와주시겠습니까?',
+    type: 'sms', sender: '카카오톡 · 딸 (프로필 사진 동일)',
+    body: '엄마 나 폰 액정 깨져서 수리맡기고 친구폰으로 보내는거야ㅠ 급한데 80만원만 이 계좌로 보내줄 수 있어? 나중에 갚을게',
+    link: null,
+    options: [
+      { text: '딸이 급하다니 일단 계좌로 돈을 보낸다.', score: 0,
+        feedback: '프로필 사진까지 도용하는 메신저 피싱이 늘고 있어요. "급하다"는 압박이 있을수록 더 의심해야 해요.' },
+      { text: '"무슨 일 있었어?" 같은 질문을 채팅으로 몇 개 던져보고 판단한다.', score: 0.4,
+        feedback: '대화만으로는 진위를 알기 어려워요. 가족만 아는 질문보다 직접 통화 확인이 훨씬 안전해요.' },
+      { text: '메시지로 답하지 않고, 평소 알던 딸의 전화번호로 직접 전화를 건다.', score: 1,
+        feedback: '같은 메신저 안에서 확인하지 않고 다른 채널(전화)로 본인 확인을 하는 것이 핵심이에요.' },
+    ]
+  },
+  {
+    tag: 'Q5. 가짜 앱 설치 유도', pattern:'link',
+    title: '안내된 앱을 설치해서<br>본인 인증을 진행하시겠습니까?',
+    type: 'sms', sender: '[정부민원24]',
+    body: '미환급금 1건이 조회되었습니다. 본인 인증 후 환급 신청을 위해 전용 앱 설치가 필요합니다.',
+    link: 'gov24-refund-app.net/install.apk',
+    options: [
+      { text: '앱은 설치하지만 의심스러운 권한 요청이 뜨면 그때 취소한다.', score: 0.3,
+        feedback: '설치 단계에서 이미 악성 코드가 실행될 수 있어요. 설치 전에 출처를 의심하는 것이 먼저예요.' },
+      { text: '의심스러워서 설치하지 않고, 실제 정부 공식 사이트에서 환급금을 직접 조회한다.', score: 1,
+        feedback: '환급금 조회는 공식 앱스토어의 정식 앱이나 공식 홈페이지에서만 진행하는 것이 안전해요.' },
+      { text: '환급금을 받기 위해 안내된 앱(.apk)을 설치하고 인증을 진행한다.', score: 0,
+        feedback: '공식 앱스토어가 아닌 출처에서 .apk 파일을 직접 설치하도록 유도하는 것은 악성 앱 설치 시도의 전형적인 방식이에요.' },
+    ]
+  },
+  {
+    tag: 'Q6. 환급금 사칭', pattern:'link',
+    title: '환급금 조회를 위해<br>어떻게 하시겠습니까?',
+    type: 'sms', sender: '[국세청 안심환급센터]',
+    body: '2025년 종합소득세 과오납분 47,800원이 확인되었습니다. 환급 신청은 본인인증 후 진행해주세요.',
+    link: 'tax-refund24.kr-gov.net/check',
+    options: [
+      { text: '문자 링크는 누르지 않고, 홈택스 앱이나 공식 홈페이지에서 직접 환급금을 조회한다.', score: 1,
+        feedback: '환급금 여부는 항상 공식 앱·사이트에서 직접 로그인해 확인하는 것이 안전해요.' },
+      { text: '소액이지만 받으면 좋으니 링크를 눌러 본인인증을 진행한다.', score: 0,
+        feedback: '국세청은 보통 홈택스 앱이나 우편으로 안내하며, 문자 링크로 본인인증을 요구하지 않아요.' },
+      { text: '금액이 작아서 그냥 무시하고 넘어간다.', score: 0.7,
+        feedback: '클릭하지 않은 것은 좋지만, 의심되면 진짜 환급금이 있는지 공식 채널에서 확인해보는 것도 도움이 돼요.' },
+    ]
+  },
+  {
+    tag: 'Q7. 자녀 사칭(사고)', pattern:'pressure',
+    title: '아들이라는 사람의 다급한 전화,<br>어떻게 하시겠습니까?',
+    type: 'call', callerLabel: '발신: 알 수 없음 (해외 번호 표시)',
+    callBody: '"엄마 나야... 사고가 나서 지금 합의금이 급하게 필요해. 자세히 설명할 시간 없어, 일단 이 계좌로 200만원만 먼저 보내줘. 빨리..."',
+    options: [
+      { text: '아들 목소리 같아서 놀란 마음에 바로 계좌로 송금한다.', score: 0,
+        feedback: 'AI 음성합성으로 목소리를 흉내내는 보이스피싱도 늘고 있어요. "시간이 없다"는 말일수록 더 의심해야 해요.' },
+      { text: '일단 통화를 이어가며 사고 경위를 캐묻는다.', score: 0.3,
+        feedback: '대화를 길게 끌수록 짜여진 각본에 휘말리기 쉬워요. 끊고 직접 전화하는 것이 가장 안전해요.' },
+      { text: '전화를 끊고 아들의 평소 번호로 직접 전화해 확인한다.', score: 1,
+        feedback: '같은 통화에서 확인하지 말고, 반드시 끊은 뒤 알고 있던 번호로 재발신해 확인하는 것이 핵심이에요.' },
+    ]
+  },
+  {
+    tag: 'Q8. 검찰·경찰 사칭', pattern:'call',
+    title: '계좌가 동결된다는 전화,<br>어떻게 대응하시겠습니까?',
+    type: 'call', callerLabel: '발신: 02-xxx-xxxx (서울지방검찰청 표시)',
+    callBody: '"OOO님 명의 계좌가 범죄에 연루되어 곧 동결됩니다. 자산 보호를 위해 안전계좌로 이전이 필요하니, 가까운 은행에서 안내하는 대로 이체해주세요."',
+    options: [
+      { text: '전화를 끊고, 검찰청 대표번호(국번없이 1301)나 가족에게 먼저 확인한다.', score: 1,
+        feedback: '공포감을 주는 전화일수록 끊고 공식 대표번호로 직접 확인하는 것이 가장 안전해요.' },
+      { text: '계좌가 동결된다니 무서워서 안내하는 대로 이체를 진행한다.', score: 0,
+        feedback: '검찰·경찰은 절대 전화로 "안전계좌 이전"을 요구하지 않아요. 이런 안내 자체가 100% 보이스피싱이에요.' },
+      { text: '일단 은행에 가서 직원에게 사정을 설명하고 이체 여부를 물어본다.', score: 0.8,
+        feedback: '은행 창구로 가는 것은 좋은 행동이에요. 다만 가는 길에라도 검찰청 진위를 먼저 확인하면 더 안전해요.' },
+    ]
+  },
+  {
+    tag: 'Q9. 경품 당첨 사칭', pattern:'info',
+    title: '명절 선물 당첨 문자,<br>어떻게 하시겠습니까?',
+    type: 'sms', sender: '[농협 고객감사단]',
+    body: '고객님께서 명절 감사 이벤트 1등(한우세트)에 당첨되셨습니다! 배송을 위해 이름, 주소, 생년월일을 회신 부탁드립니다.',
+    link: null,
+    options: [
+      { text: '당첨됐다니 기뻐서 이름과 주소, 생년월일을 답장으로 보낸다.', score: 0,
+        feedback: '참여하지 않은 이벤트의 당첨 통보, 그리고 개인정보를 문자로 요구하는 것은 대표적인 정보 수집형 사기예요.' },
+      { text: '이름만 알려주고 주소나 생년월일은 알려주지 않는다.', score: 0.4,
+        feedback: '이름도 개인정보예요. 일부만 알려줘도 추가 사기에 활용될 수 있으니 아예 응답하지 않는 것이 안전해요.' },
+      { text: '참여한 적 없는 이벤트라 무시하고, 농협 고객센터에 직접 전화해 확인한다.', score: 1,
+        feedback: '참여하지 않은 이벤트의 당첨은 일단 의심하고, 공식 고객센터로 확인하는 것이 정확해요.' },
+    ]
+  },
+  {
+    tag: 'Q10. 통신사 인증 사칭', pattern:'info',
+    title: '소액결제 인증 문자,<br>어떻게 대응하시겠습니까?',
+    type: 'sms', sender: '[SKT 안심결제]',
+    body: '고객님 명의로 99,000원 소액결제가 시도되었습니다. 본인이 아니라면 아래 인증번호를 통신사 상담원에게 알려주세요. [인증번호: 4821]',
+    link: null,
+    options: [
+      { text: '인증번호는 알려주지 않고, 통신사 공식 앱이나 114로 직접 확인한다.', score: 1,
+        feedback: '인증번호 요구 자체가 이상 신호예요. 공식 앱·고객센터로 직접 확인하는 습관이 중요해요.' },
+      { text: '내가 한 게 아니니 전화 온 상담원에게 인증번호를 바로 알려준다.', score: 0,
+        feedback: '인증번호는 본인 확인 외 어떤 목적으로도 타인에게 알려주면 안 돼요. 상담원이라도 절대 요구하지 않는 정보예요.' },
+      { text: '문자를 보낸 척하는 사람에게 전화로 "정말 SKT 직원이냐"고 되묻는다.', score: 0.3,
+        feedback: '되묻는 시도는 좋지만, 가짜 상담원은 그럴듯하게 둘러댈 수 있어요. 직접 114로 거는 것이 더 안전해요.' },
+    ]
+  },
+  {
+    tag: 'Q11. 카카오톡 계정 도용', pattern:'info',
+    title: '계정 보안 경고 문자,<br>어떻게 하시겠습니까?',
+    type: 'sms', sender: '[카카오 보안센터]',
+    body: '고객님의 카카오 계정에 비정상 로그인이 감지되었습니다. 계정 보호를 위해 인증번호 [6630]을 즉시 입력해주세요.',
+    link: 'kakao-account-verify.com/auth',
+    options: [
+      { text: '계정이 위험하다니 급하게 링크를 눌러 인증번호를 입력한다.', score: 0,
+        feedback: '카카오 공식 도메인이 아닌 주소로 인증번호를 입력하면 계정이 그대로 탈취돼요.' },
+      { text: '인증번호만 입력하고 다른 정보는 입력하지 않는다.', score: 0.1,
+        feedback: '인증번호 하나만으로도 계정이 탈취될 수 있어요. 이 유형은 인증번호 입력 자체가 가장 위험한 행동이에요.' },
+      { text: '문자 속 링크는 누르지 않고, 카카오톡 앱 내 설정에서 직접 보안 상태를 확인한다.', score: 1,
+        feedback: '보안 관련 확인은 항상 앱이나 공식 사이트에 직접 들어가서 하는 것이 안전해요.' },
+    ]
+  },
+  {
+    tag: 'Q12. 가짜 세금 고지서', pattern:'pressure',
+    title: '재산세 고지서 문자,<br>어떻게 대응하시겠습니까?',
+    type: 'sms', sender: '[위택스 안내]',
+    body: '2025년 재산세 미납분이 확인되었습니다. 기한 내 미납시 가산세 및 압류 조치가 진행됩니다. 즉시 아래에서 납부해주세요.',
+    link: 'wetax-pay.kr-secure.net/bill',
+    options: [
+      { text: '문자는 무시하고, 위택스 공식 앱이나 홈페이지에서 직접 납부 내역을 확인한다.', score: 1,
+        feedback: '세금 관련 안내는 항상 공식 앱·홈페이지에서 직접 로그인해 확인하는 것이 정확해요.' },
+      { text: '압류된다니 무서워서 바로 링크에 들어가 카드정보를 입력해 납부한다.', score: 0,
+        feedback: '"압류"같은 위협적 표현으로 압박하는 것은 전형적인 수법이에요. 위택스는 이런 방식으로 안내하지 않아요.' },
+      { text: '동사무소에 전화해서 문자가 사실인지 물어본다.', score: 0.9,
+        feedback: '관공서에 직접 확인하는 좋은 습관이에요. 번호도 검색을 통해 공식 번호로 거셨다면 완벽해요.' },
+    ]
+  },
+  {
+    tag: 'Q13. 손주 응급실 사칭', pattern:'money',
+    title: '손주가 응급실에 있다는 전화,<br>어떻게 하시겠습니까?',
+    type: 'call', callerLabel: '발신: 알 수 없음 (병원 이름 언급)',
+    callBody: '"여기 OO병원 응급실인데요, 손녀분이 교통사고로 실려와서 수술이 급한데 보호자가 연락이 안 돼서요. 수술비 150만원을 먼저 입금해주셔야 진행이 가능합니다."',
+    options: [
+      { text: '손녀가 걱정돼서 일단 안내받은 계좌로 수술비를 입금한다.', score: 0,
+        feedback: '실제 응급실은 치료를 먼저 진행하고 비용은 나중에 정산해요. "선입금해야 수술 가능"이라는 말 자체가 사기 신호예요.' },
+      { text: '병원 이름을 검색해 대표번호로 전화해 확인해본다.', score: 0.9,
+        feedback: '병원 대표번호로 직접 확인하는 것도 좋은 방법이에요. 가족 확인과 함께 하면 더 확실해요.' },
+      { text: '전화를 끊고 손녀나 손녀의 부모(자녀)에게 직접 전화해 사실인지 확인한다.', score: 1,
+        feedback: '가족에게 직접 전화로 확인하는 것이 가장 빠르고 정확한 방법이에요.' },
+    ]
+  },
+  {
+    tag: 'Q14. 보험금 환급 사칭', pattern:'call',
+    title: '숨은 보험금이 있다는 전화,<br>어떻게 대응하시겠습니까?',
+    type: 'call', callerLabel: '발신: 1588-xxxx (보험사 대표번호로 표시)',
+    callBody: '"고객님 명의로 숨은 보험금 320만원이 확인되었습니다. 빠른 환급을 위해 지금 통화로 본인 명의 계좌번호와 주민등록번호를 확인해드릴게요."',
+    options: [
+      { text: '전화는 끊고, 보험사 공식 앱이나 생명보험협회 "숨은보험금 찾기"에서 직접 조회한다.', score: 1,
+        feedback: '숨은 보험금은 생명보험협회·손해보험협회 공식 사이트에서 본인이 직접 조회할 수 있어요.' },
+      { text: '환급금을 받을 생각에 전화로 계좌번호와 주민등록번호를 알려준다.', score: 0,
+        feedback: '발신번호는 조작될 수 있어요. 전화로 주민등록번호 전체를 묻는 것 자체가 위험 신호예요.' },
+      { text: '계좌번호는 알려주지만 주민등록번호는 거부한다.', score: 0.3,
+        feedback: '계좌번호만으로도 추가 사기에 악용될 수 있어요. 전화로는 어떤 정보도 주지 않는 것이 안전해요.' },
+    ]
+  },
+  {
+    tag: 'Q15. 방역지원금 사칭', pattern:'link',
+    title: '지원금 안내 문자,<br>어떻게 하시겠습니까?',
+    type: 'sms', sender: '[보건복지부 지원안내]',
+    body: '어르신 방역물품 지원금 30,000원 대상자로 선정되셨습니다. 신청 마감이 임박했으니 아래 링크에서 빠르게 신청해주세요.',
+    link: 'bokjiro-support.kr.app-link.net/apply',
+    options: [
+      { text: '문자 링크는 무시하고, 복지로(bokjiro.go.kr) 공식 사이트나 주민센터에서 직접 확인한다.', score: 1,
+        feedback: '정부 지원금 관련 안내는 항상 복지로 공식 사이트나 주민센터에서 확인하는 것이 정확해요.' },
+      { text: '마감이 임박했다니 서둘러 링크에 들어가 정보를 입력한다.', score: 0,
+        feedback: '"마감 임박"이라는 압박 문구와 변형 도메인이 함께 쓰이면 거의 확실한 스미싱이에요.' },
+      { text: '링크를 누르긴 하지만 개인정보는 입력하지 않고 화면만 본다.', score: 0.2,
+        feedback: '링크를 누르는 순간 악성코드가 설치될 수도 있어요. 의심스러운 링크는 누르지 않는 것이 먼저예요.' },
+    ]
+  }
+];
+
+const PATTERN_META = {
+  link:     { label: '링크클릭형',   color: '#C08C73' },
+  info:     { label: '개인정보요구형', color: '#D7A23A' },
+  money:    { label: '금전송금형',   color: '#E0654F' },
+  call:     { label: '통화유도형',   color: '#8A7E7C' },
+  pressure: { label: '압박감정형',   color: '#A9714F' },
+};
+
+const PATTERN_GUIDE = {
+  link: '낯선 링크는 절대 누르지 않는 것이 기본이에요. 문자에 링크가 있으면, 발신자가 누구든 일단 의심하고 공식 앱이나 검색을 통해 직접 들어가는 습관을 들이세요. 링크 주소에 익숙한 기관명이 들어있어도, 뒤에 이상한 도메인이 붙어있는지(예: .net, .cn, 낯선 단어 조합) 꼭 확인하세요.',
+  info: '전화나 문자로 주민등록번호, 카드 비밀번호, 인증번호 전체를 요구하는 곳은 100% 사기예요. 어떤 공공기관·금융기관도 이런 정보를 통화 중에 묻지 않아요. 누군가 정보를 요구하면 그 자리에서 끊고, 알고 있는 공식 번호로 직접 다시 거세요.',
+  money: '"급하다", "지금 당장" 같은 말과 함께 송금을 요구받으면 가장 먼저 전화를 끊으세요. 그 다음 메시지를 보낸 사람에게 평소 알던 번호로 직접 전화해 본인이 맞는지 확인하세요. 같은 채팅창에서 확인하는 것은 위험해요, 채널을 바꿔서 확인하는 것이 핵심이에요.',
+  call: '발신번호는 조작이 가능하다는 점을 꼭 기억하세요. 전화를 받은 그 자리에서 정보를 주거나 약속하지 말고, "확인 후 다시 연락드리겠습니다"라고 말한 뒤 끊고, 공식 대표번호를 직접 검색해서 거세요.',
+  pressure: '무섭거나 급한 감정이 들 때일수록 사기일 가능성이 높아요. 전화를 받고 가슴이 철렁했다면, 잠시 끊고 10초간 숨을 고른 뒤 가족이나 신뢰할 수 있는 사람에게 먼저 알리세요. 사기범들은 바로 판단을 못 하게 압박하는 것을 노립니다.',
+};
+
+let currentIndex = 0;
+let answers = []; // {tag, pattern, score, feedback}
+let selectedPlan = 'basic'; // 'basic' | 'plus'
+let selectedPayMethod = 'card';
+let resultPercent = 0, resultGrade = '', resultGradeColor = '';
+
+function startTest(){
+  document.getElementById('start-page').classList.add('hidden');
+  document.getElementById('question-page').classList.remove('hidden');
+  currentIndex = 0;
+  answers = [];
+  isAnswering = false;
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[currentIndex];
+  const total = QUESTIONS.length;
+
+  document.getElementById('progress-fill').style.width = ((currentIndex)/total*100) + '%';
+  document.getElementById('progress-label').textContent = (currentIndex+1) + ' / ' + total;
+
+  let mediaHtml = '';
+  if(q.type === 'sms'){
+    mediaHtml = `
+      <div class="chat-box">
+        <div class="chat-tag">${q.sender}</div>
+        ${q.body}${q.link ? `<br><span class="chat-link">${q.link}</span>` : ''}
+        <div class="chat-meta">방금 전 · 알 수 없는 발신 번호</div>
+      </div>`;
+  } else if(q.type === 'call'){
+    mediaHtml = `
+      <div class="call-box">
+        <div class="num">📞 ${q.callerLabel}</div>
+        <div style="margin-top:10px;">${q.callBody}</div>
+      </div>`;
+  }
+
+  const optionsHtml = q.options.map((opt, i) =>
+    `<button class="btn btn-select" onclick="selectOption(${i})">${opt.text}</button>`
+  ).join('');
+
+  document.getElementById('question-content').innerHTML = `
+    <div class="qtag">${q.tag}</div>
+    <h1 class="qtitle">${q.title}</h1>
+    ${mediaHtml}
+    <div class="options">${optionsHtml}</div>
+  `;
+}
+
+let isAnswering = false;
+
+function selectOption(i){
+  if(isAnswering) return; // 중복 클릭/터치 방지 (107% 같은 비정상 점수 원인 차단)
+  isAnswering = true;
+
+  const q = QUESTIONS[currentIndex];
+  const opt = q.options[i];
+  answers.push({ tag: q.tag, pattern: q.pattern, score: opt.score, feedback: opt.feedback });
+
+  if(currentIndex < QUESTIONS.length - 1){
+    currentIndex++;
+    renderQuestion();
+    isAnswering = false;
+  } else {
+    document.getElementById('progress-fill').style.width = '100%';
+    document.getElementById('progress-label').textContent = QUESTIONS.length + ' / ' + QUESTIONS.length;
+    setTimeout(showResult, 250);
+  }
+}
+
+function showResult(){
+  switchPage('result'); resultUnlocked = true; document.getElementById('nav-result').classList.remove('nav-locked');
+  document.getElementById('question-page').classList.add('hidden');
+  document.getElementById('result-page').classList.remove('hidden');
+
+  const totalScore = answers.reduce((s,a)=>s+a.score,0);
+  const maxScore = QUESTIONS.length;
+  const percent = Math.round((totalScore/maxScore)*100);
+  resultPercent = percent;
+
+  let grade, gradeColor, title, msg;
+  if(percent >= 90){
+    grade = '베테랑'; gradeColor = '#5B8C72';
+    title = '거의 모든 함정을 피했어요';
+    msg = '의심스러운 연락에 반응하기 전, 항상 공식 채널로 재확인하는 습관이 잘 잡혀 있어요. 다만 피싱 수법은 계속 진화하니 가족에게도 이 테스트를 공유해보세요.';
+  } else if(percent >= 70){
+    grade = '안전 우위'; gradeColor = '#7A9E7E';
+    title = '대체로 안전하게 대응했어요';
+    msg = '핵심 상황에서는 잘 대응했지만, 한두 가지 패턴에서 흔들렸어요. 아래 리뷰에서 어떤 부분을 보완하면 좋을지 확인해보세요.';
+  } else if(percent >= 40){
+    grade = '주의 필요'; gradeColor = '#D7A23A';
+    title = '몇 가지 함정에 걸릴 수 있어요';
+    msg = '급하거나 그럴듯한 상황일수록 판단이 흐려지기 쉬워요. "링크를 누르기 전 공식 채널로 확인" 한 가지 원칙만 기억해도 위험을 크게 줄일 수 있어요.';
+  } else {
+    grade = '고위험'; gradeColor = '#E0654F';
+    title = '지금 바로 점검이 필요해요';
+    msg = '여러 상황에서 피싱 신호를 놓쳤어요. 부끄러운 일이 아니에요 — 요즘 수법은 매우 정교해졌거든요. 아래 리뷰를 가족과 함께 읽어보는 것을 추천해요.';
+  }
+  resultGrade = grade; resultGradeColor = gradeColor;
+
+  document.getElementById('ring-percent').textContent = percent + '%';
+  const circumference = 465;
+  const offset = circumference - (circumference * percent / 100);
+  const ring = document.getElementById('ring-fg');
+  ring.style.stroke = gradeColor;
+  setTimeout(()=>{ ring.style.strokeDashoffset = offset; }, 80);
+
+  const chip = document.getElementById('grade-chip');
+  chip.textContent = grade + ' 등급';
+  chip.style.background = gradeColor + '22';
+  chip.style.color = gradeColor;
+
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-msg').textContent = msg;
+
+  // 무료: 앞 3문항만 리뷰 + 잠금 안내
+  const freeAnswers = answers.slice(0, 3);
+  let freeHtml = freeAnswers.map(a => reviewItemHtml(a)).join('');
+  freeHtml += `<div class="locked-row">🔒 나머지 12개 문항 리뷰는 프리미엄에서 확인할 수 있어요</div>`;
+  document.getElementById('review-list-free').innerHTML = freeHtml;
+
+  // 프리미엄: 전체 리뷰는 미리 만들어두고 결제 후 노출
+  document.getElementById('review-list-full').innerHTML = answers.map(a => reviewItemHtml(a)).join('');
+
+  // 패턴별 분석 미리 계산
+  renderPatternAnalysis();
+}
+
+function reviewItemHtml(a){
+  const isGood = a.score >= 0.7;
+  return `
+    <div class="review-item">
+      <div class="review-mark ${isGood ? 'mark-good' : 'mark-bad'}">${isGood ? '✓' : '!'}</div>
+      <div class="review-text">
+        <div class="review-q">${a.tag}</div>
+        ${a.feedback}
+      </div>
+    </div>`;
+}
+
+function renderPatternAnalysis(){
+  // 패턴별 평균 점수 -> 위험도(%) = 100 - 안전도. 숫자가 높을수록 위험하다는 직관과 일치시킴.
+  const grouped = {};
+  Object.keys(PATTERN_META).forEach(k => grouped[k] = []);
+  answers.forEach(a => grouped[a.pattern].push(a.score));
+
+  const patternRiskScores = {};
+  Object.keys(grouped).forEach(k => {
+    const arr = grouped[k];
+    if(!arr.length){ patternRiskScores[k] = null; return; }
+    const safety = Math.round((arr.reduce((s,v)=>s+v,0)/arr.length)*100);
+    patternRiskScores[k] = 100 - safety; // 위험도로 환산
+  });
+
+  let barsHtml = '';
+  Object.keys(PATTERN_META).forEach(k => {
+    const meta = PATTERN_META[k];
+    const risk = patternRiskScores[k];
+    if(risk === null) return;
+    barsHtml += `
+      <div class="pattern-bar-row">
+        <div class="pattern-bar-label">${meta.label}</div>
+        <div class="pattern-bar-track"><div class="pattern-bar-fill" style="width:0%;background:${meta.color};" data-target="${risk}"></div></div>
+        <div class="pattern-bar-pct">${risk}%</div>
+      </div>`;
+  });
+  document.getElementById('pattern-bars').innerHTML = barsHtml;
+
+  // 가장 취약한(=위험도가 가장 높은) 패턴 찾기
+  let weakestKey = null, weakestRisk = -1;
+  Object.keys(patternRiskScores).forEach(k => {
+    if(patternRiskScores[k] !== null && patternRiskScores[k] > weakestRisk){
+      weakestRisk = patternRiskScores[k]; weakestKey = k;
+    }
+  });
+
+  if(weakestKey){
+    const meta = PATTERN_META[weakestKey];
+    document.getElementById('weak-pattern-card').innerHTML = `
+      <div class="weak-card">
+        <div class="weak-card-tag">⚠ 가장 취약한 패턴: ${meta.label}</div>
+        <div class="weak-card-text">이 유형의 상황에서 위험도가 ${weakestRisk}%로 가장 높았어요. 아래 맞춤 가이드를 참고해보세요.</div>
+      </div>`;
+    document.getElementById('guide-box').textContent = PATTERN_GUIDE[weakestKey];
+  }
+
+  window._patternScores = patternRiskScores;
+  window._weakestKey = weakestKey;
+}
+
+function animatePatternBars(){
+  document.querySelectorAll('.pattern-bar-fill').forEach(el => {
+    const target = el.getAttribute('data-target');
+    setTimeout(()=>{ el.style.width = target + '%'; }, 100);
+  });
+}
+
+/* ── 결제 흐름 (시뮬레이션) ── */
+function selectPlan(plan){
+  selectedPlan = plan;
+  document.getElementById('price-basic').classList.toggle('selected', plan==='basic');
+  document.getElementById('price-plus').classList.toggle('selected', plan==='plus');
+}
+selectPlan('basic');
+
+function openPayModal(){
+  const krw = selectedPlan === 'basic' ? '1,900원' : '3,900원';
+  const usdt = selectedPlan === 'basic' ? '1.9 USDT' : '3.9 USDT';
+  document.getElementById('pay-modal-plan').textContent =
+    (selectedPlan === 'basic' ? '프리미엄' : '프리미엄 플러스') + ' 리포트';
+  document.getElementById('pay-amount-krw').textContent = krw;
+  document.getElementById('pay-amount-usdt').textContent = usdt;
+  selectPayMethod('card');
+  const modal = document.getElementById('pay-modal');
+  modal.classList.remove('hidden');
+  modal.style.display = 'flex';
+}
+function closePayModal(){
+  const modal = document.getElementById('pay-modal');
+  modal.classList.add('hidden');
+  modal.style.display = 'none';
+}
+function selectPayMethod(m){
+  selectedPayMethod = m;
+  document.getElementById('pay-card').classList.toggle('selected', m==='card');
+  document.getElementById('pay-usdt').classList.toggle('selected', m==='usdt');
+}
+
+function confirmPayment(){
+  // ⚙️ 실제 연동 지점:
+  // - card: PG사(토스페이먼츠/카카오페이 등) 결제창 호출 → 승인 webhook 수신 → 아래 unlockPremium() 호출
+  // - usdt: 암호화폐 게이트웨이(CoinGate/NOWPayments 등) 주문 생성 → 입금 컨펌 webhook 수신 → 아래 unlockPremium() 호출
+  closePayModal();
+  unlockPremium();
+}
+
+function unlockPremium(){
+  document.getElementById('upsell-section').classList.add('hidden');
+  document.getElementById('premium-section').classList.remove('hidden');
+  document.getElementById('plus-only-section').classList.toggle('hidden', selectedPlan !== 'plus');
+  animatePatternBars();
+  if(selectedPlan === 'plus'){
+    renderMsgTemplate();
+  }
+}
+
+function renderMsgTemplate(){
+  const weakLabel = window._weakestKey ? PATTERN_META[window._weakestKey].label : '의심스러운 연락';
+  const tpl = `엄마, 아빠 — 요즘 ${weakLabel} 방식의 사기가 정말 많대요.
+
+낯선 문자 속 링크는 누르지 마시고, 전화로 급하게 돈이나 개인정보를 요구하면 일단 끊고 저한테 바로 전화해주세요!
+
+저도 방금 '온기' 테스트 해봤는데, 부모님도 한번 해보시면 좋을 것 같아요 :)`;
+  document.getElementById('msg-template').textContent = tpl;
+}
+
+function copyTemplate(){
+  const text = document.getElementById('msg-template').textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    alert('메시지가 복사되었어요. 카카오톡이나 문자에 붙여넣어 보내보세요.');
+  }).catch(()=>{
+    alert('복사에 실패했어요. 메시지를 직접 선택해 복사해주세요.');
+  });
+}
+
+/* ── 공유 기능 ── */
+function buildShareCard(){
+  document.getElementById('sc-percent').textContent = resultPercent + '%';
+  document.getElementById('sc-grade').textContent = resultGrade + ' 등급';
+  const weakLabel = window._weakestKey ? PATTERN_META[window._weakestKey].label : null;
+  document.getElementById('sc-copy').textContent = weakLabel
+    ? `가장 취약한 패턴: ${weakLabel}`
+    : '나의 피싱 생존율을 확인해보세요';
+}
+
+function shareKakao(){
+  // ⚙️ 실제 연동 지점: 카카오 디벨로퍼스에서 JavaScript 키 발급 후
+  // Kakao.init('YOUR_JS_KEY') 및 Kakao.Share.sendDefault({...}) 호출
+  alert('카카오톡 공유 기능은 카카오 디벨로퍼스 앱 키 연동이 필요해요. (개발 연동 예정 지점)');
+}
+
+function shareTelegram(){
+  const text = encodeURIComponent(`나의 피싱 생존율은 ${resultPercent}%! (${resultGrade} 등급)\n온기에서 직접 테스트 해보세요.`);
+  const url = encodeURIComponent(location.href);
+  window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
+}
+
+function downloadImage(){
+  buildShareCard();
+  const el = document.getElementById('share-card-capture');
+  el.style.position = 'fixed'; el.style.top = '0'; el.style.left = '0'; el.style.zIndex = '-1'; el.style.opacity = '0';
+  html2canvas(el, { scale: 2 }).then(canvas => {
+    el.style.top = '-9999px'; el.style.left = '-9999px'; el.style.opacity = '1';
+    const link = document.createElement('a');
+    link.download = 'ongi-result.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+}
+
+function downloadPdf(){
+  buildShareCard();
+  const el = document.getElementById('share-card-capture');
+  el.style.position = 'fixed'; el.style.top = '0'; el.style.left = '0'; el.style.zIndex = '-1'; el.style.opacity = '0';
+  html2canvas(el, { scale: 2 }).then(canvas => {
+    el.style.top = '-9999px'; el.style.left = '-9999px'; el.style.opacity = '1';
+    const { jsPDF } = window.jspdf;
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({ unit: 'px', format: [canvas.width/2, canvas.height/2] });
+    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width/2, canvas.height/2);
+    pdf.save('ongi-result.pdf');
+  });
+}
+
+function restartTest(){
+  switchPage('test');
+  document.getElementById('result-page').classList.add('hidden');
+  document.getElementById('start-page').classList.remove('hidden');
+  document.getElementById('ring-fg').style.strokeDashoffset = 465;
+  document.getElementById('upsell-section').classList.remove('hidden');
+  document.getElementById('premium-section').classList.add('hidden');
+  document.getElementById('plus-only-section').classList.add('hidden');
+}
+
+</script>
+</body>
+</html>
