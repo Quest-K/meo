@@ -1322,7 +1322,6 @@ function selectOption(i){
 function showResult(){
   switchPage('result'); resultUnlocked = true; document.getElementById('nav-result').classList.remove('nav-locked');
   document.getElementById('question-page').classList.add('hidden');
-  document.getElementById('result-page').classList.remove('hidden');
 
   const totalScore = answers.reduce((s,a)=>s+a.score,0);
   const maxScore = QUESTIONS.length;
@@ -1565,7 +1564,7 @@ function downloadPdf(){
 
 function restartTest(){
   switchPage('test');
-  document.getElementById('result-page').classList.add('hidden');
+  document.getElementById('question-page').classList.add('hidden');
   document.getElementById('start-page').classList.remove('hidden');
   document.getElementById('ring-fg').style.strokeDashoffset = 465;
   document.getElementById('upsell-section').classList.remove('hidden');
