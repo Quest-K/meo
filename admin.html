@@ -76,9 +76,15 @@
 
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="document.getElementById('initError').style.display='block'; document.getElementById('initError').textContent='Supabase 라이브러리(CDN) 로드에 실패했습니다. 네트워크/광고차단 확장 프로그램을 확인해주세요.';"></script>
+<div id="initError" style="display:none; background:#F6E5E2; color:#832920; padding:14px; margin:20px; font-size:13px;"></div>
 <script src="supabase-client.js"></script>
 <script>
+if(typeof window.supabase === 'undefined'){
+  document.getElementById('initError').style.display='block';
+  document.getElementById('initError').textContent='Supabase 라이브러리가 로드되지 않았습니다. 페이지를 새로고침하거나 다른 네트워크에서 시도해주세요.';
+  throw new Error('supabase-js failed to load');
+}
 const STATUS_OPTIONS = ['RECEIPT','ANALYSIS','SUBMISSION','PRESSURE','RESOLVED'];
 
 function showMsg(el, text, type){
@@ -100,15 +106,19 @@ async function checkSession(){
 document.getElementById('loginForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const msgEl = document.getElementById('loginMsg');
-  const { error } = await supabase.auth.signInWithPassword({
-    email: document.getElementById('email').value,
-    password: document.getElementById('password').value
-  });
-  if(error){
-    showMsg(msgEl, '로그인 실패: 이메일 또는 비밀번호를 확인해주세요.', 'error');
-    return;
+  try{
+    const { error } = await supabase.auth.signInWithPassword({
+      email: document.getElementById('email').value,
+      password: document.getElementById('password').value
+    });
+    if(error){
+      showMsg(msgEl, '로그인 실패: ' + error.message, 'error');
+      return;
+    }
+    checkSession();
+  }catch(err){
+    showMsg(msgEl, '예상치 못한 오류: ' + err.message, 'error');
   }
-  checkSession();
 });
 
 document.getElementById('logoutLink').addEventListener('click', async (e)=>{
