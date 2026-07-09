@@ -93,7 +93,7 @@ function showMsg(el, text, type){
 }
 
 async function checkSession(){
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabaseClient.auth.getSession();
   if(session){
     document.getElementById('loginSection').style.display = 'none';
     document.getElementById('dashboardSection').style.display = 'block';
@@ -107,7 +107,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const msgEl = document.getElementById('loginMsg');
   try{
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabaseClient.auth.signInWithPassword({
       email: document.getElementById('email').value,
       password: document.getElementById('password').value
     });
@@ -123,7 +123,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e)=>{
 
 document.getElementById('logoutLink').addEventListener('click', async (e)=>{
   e.preventDefault();
-  await supabase.auth.signOut();
+  await supabaseClient.auth.signOut();
   location.reload();
 });
 
@@ -137,7 +137,7 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 });
 
 async function loadReports(){
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('reports')
     .select('id,title,plan_type,status,created_at')
     .order('created_at', { ascending:false });
@@ -161,13 +161,13 @@ async function loadReports(){
 
   document.querySelectorAll('.status-select').forEach(sel=>{
     sel.addEventListener('change', async ()=>{
-      await supabase.from('reports').update({ status: sel.value }).eq('id', sel.dataset.id);
+      await supabaseClient.from('reports').update({ status: sel.value }).eq('id', sel.dataset.id);
     });
   });
 }
 
 async function loadPartners(){
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('partners')
     .select('id,name,specialty,phone,status')
     .order('created_at', { ascending:false });
@@ -189,7 +189,7 @@ async function loadPartners(){
 
   document.querySelectorAll('[data-approve]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
-      await supabase.from('partners').update({ status:'approved' }).eq('id', btn.dataset.approve);
+      await supabaseClient.from('partners').update({ status:'approved' }).eq('id', btn.dataset.approve);
       loadPartners();
     });
   });
