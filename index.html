@@ -272,7 +272,7 @@ document.getElementById('reportForm').addEventListener('submit', async (e)=>{
     document.getElementById('existingBlock').classList.remove('show');
   }catch(err){
     console.error(err);
-    showMsg(msgEl, '접수 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
+    showMsg(msgEl, '접수 중 오류: ' + (err.message || JSON.stringify(err)), 'error');
   }finally{
     btn.disabled = false; btn.textContent = '제보 접수하기';
   }
