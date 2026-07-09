@@ -1,0 +1,195 @@
+/* ===== 취재시작 — 공유 스타일 ===== */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700;900&family=Pretendard:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+:root{
+  --paper:#EDE8DC;
+  --paper-dark:#E2DCCB;
+  --ink:#201D19;
+  --ink-soft:#54504A;
+  --stamp:#A8362A;
+  --stamp-dark:#832920;
+  --slate:#2E3B3E;
+  --line:#C9C0AC;
+  --ok:#3E6B4F;
+  --pending:#B08A2E;
+  --radius:2px;
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Pretendard', -apple-system, sans-serif;
+  line-height:1.6;
+}
+h1,h2,h3{
+  font-family:'Noto Serif KR', serif;
+  font-weight:900;
+  margin:0 0 .4em;
+  letter-spacing:-.01em;
+}
+.mono{font-family:'IBM Plex Mono', monospace; letter-spacing:.02em;}
+a{color:inherit;}
+img{max-width:100%;}
+
+.wrap{max-width:720px; margin:0 auto; padding:0 20px;}
+
+/* 상단 케이스 헤더 */
+.case-header{
+  border-bottom:3px double var(--ink);
+  padding:14px 20px;
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--paper);
+  position:sticky; top:0; z-index:20;
+}
+.case-header .brand{font-family:'Noto Serif KR',serif; font-weight:900; font-size:19px;}
+.case-header nav a{
+  font-size:13px; margin-left:16px; text-decoration:none; color:var(--ink-soft);
+  border-bottom:1px solid transparent;
+}
+.case-header nav a.active{color:var(--ink); border-color:var(--stamp);}
+
+.case-no{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px;
+  color:var(--ink-soft);
+  letter-spacing:.06em;
+}
+
+/* 사건 스탬프(도장) — 시그니처 요소, 상태값 표시용 */
+.stamp{
+  display:inline-flex; align-items:center; gap:6px;
+  border:2px solid currentColor;
+  border-radius:50%;
+  padding:10px 16px;
+  transform:rotate(-6deg);
+  font-family:'IBM Plex Mono', monospace;
+  font-weight:600;
+  font-size:12px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.stamp::before{content:'●'; font-size:8px;}
+.stamp.receipt{color:var(--pending);}
+.stamp.progress{color:var(--slate);}
+.stamp.pressure{color:var(--stamp);}
+.stamp.resolved{color:var(--ok);}
+
+/* 섹션 공통 */
+section{padding:56px 0;}
+.eyebrow{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px; letter-spacing:.15em; text-transform:uppercase;
+  color:var(--stamp); margin-bottom:10px;
+}
+.divider{border:none; border-top:1px dashed var(--line); margin:40px 0;}
+
+/* 히어로 */
+.hero{padding:64px 0 40px;}
+.hero h1{font-size:34px; line-height:1.25;}
+.hero p.lead{font-size:16px; color:var(--ink-soft); max-width:52ch;}
+
+/* 버튼 */
+.btn{
+  display:inline-block;
+  font-family:'IBM Plex Mono', monospace;
+  font-weight:600; font-size:14px; letter-spacing:.03em;
+  padding:13px 22px;
+  border-radius:var(--radius);
+  border:1.5px solid var(--ink);
+  text-decoration:none;
+  cursor:pointer;
+  background:transparent;
+  color:var(--ink);
+}
+.btn.primary{background:var(--stamp); border-color:var(--stamp); color:#fff;}
+.btn.primary:disabled{opacity:.5; cursor:not-allowed;}
+.btn.block{display:block; width:100%; text-align:center;}
+
+/* 타임라인 (상태 흐름) */
+.timeline{list-style:none; margin:0; padding:0;}
+.timeline li{
+  display:grid; grid-template-columns:28px 1fr; gap:14px;
+  padding:18px 0; border-bottom:1px solid var(--line);
+}
+.timeline li:last-child{border-bottom:none;}
+.timeline .dot{
+  width:12px; height:12px; border-radius:50%;
+  border:2px solid var(--ink-soft); margin-top:4px;
+}
+.timeline li.done .dot{background:var(--ink); border-color:var(--ink);}
+.timeline li.current .dot{background:var(--stamp); border-color:var(--stamp);}
+.timeline .t-title{font-weight:700; margin-bottom:2px;}
+.timeline .t-desc{font-size:13px; color:var(--ink-soft);}
+
+/* 요금제 카드 */
+.plans{display:grid; grid-template-columns:1fr; gap:16px;}
+.plan{
+  border:1.5px solid var(--ink); padding:22px; background:#F7F4EC;
+  position:relative;
+}
+.plan.recommend{border-color:var(--stamp); border-width:2px;}
+.plan.recommend::before{
+  content:'추천';
+  position:absolute; top:-11px; right:16px;
+  background:var(--stamp); color:#fff; font-size:11px; padding:3px 10px;
+  font-family:'IBM Plex Mono',monospace;
+}
+.plan h3{font-size:18px; margin-bottom:2px;}
+.plan .price{font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:600; margin:8px 0;}
+.plan .price small{font-size:12px; color:var(--ink-soft); font-weight:400;}
+.plan ul{margin:12px 0 0; padding-left:18px; font-size:13.5px; color:var(--ink-soft);}
+.plan .breakdown{font-size:12px; color:var(--ink-soft); margin-top:10px; border-top:1px dashed var(--line); padding-top:10px;}
+
+/* 폼 */
+.form-card{background:#F7F4EC; border:1.5px solid var(--ink); padding:24px;}
+.field{margin-bottom:18px;}
+.field label{display:block; font-size:13px; font-weight:600; margin-bottom:6px;}
+.field .hint{font-size:12px; color:var(--ink-soft); margin-top:5px;}
+input[type=text], input[type=tel], input[type=email], input[type=password], textarea, select{
+  width:100%; padding:11px 12px; border:1.5px solid var(--line);
+  background:#fff; font-family:inherit; font-size:14px; border-radius:var(--radius);
+}
+textarea{min-height:120px; resize:vertical;}
+.radio-row{display:flex; gap:10px; flex-wrap:wrap;}
+.radio-row label{
+  border:1.5px solid var(--line); padding:9px 14px; font-size:13px; cursor:pointer;
+  display:flex; align-items:center; gap:6px; font-weight:400;
+}
+.radio-row input{width:auto;}
+.conditional{display:none; margin-top:14px; padding-top:14px; border-top:1px dashed var(--line);}
+.conditional.show{display:block;}
+.consent{display:flex; align-items:flex-start; gap:10px; font-size:12.5px; color:var(--ink-soft);}
+.consent input{width:auto; margin-top:3px;}
+
+.msg{padding:12px 14px; font-size:13px; border-left:3px solid; margin-bottom:16px; display:none;}
+.msg.show{display:block;}
+.msg.error{background:#F6E5E2; border-color:var(--stamp); color:var(--stamp-dark);}
+.msg.success{background:#E8EEE9; border-color:var(--ok); color:var(--ok);}
+
+/* 상태 뱃지 (관리자용 테이블) */
+.badge{
+  display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:11px;
+  padding:3px 8px; border-radius:2px; letter-spacing:.03em;
+}
+.badge.RECEIPT{background:#F1E6C8; color:var(--pending);}
+.badge.ANALYSIS{background:#DDE4E6; color:var(--slate);}
+.badge.SUBMISSION{background:#DDE4E6; color:var(--slate);}
+.badge.PRESSURE{background:#F6E0DC; color:var(--stamp);}
+.badge.RESOLVED{background:#DEE9E1; color:var(--ok);}
+.badge.pending{background:#F1E6C8; color:var(--pending);}
+.badge.approved{background:#DEE9E1; color:var(--ok);}
+
+table{width:100%; border-collapse:collapse; font-size:13px;}
+th,td{text-align:left; padding:10px 8px; border-bottom:1px solid var(--line);}
+th{font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; color:var(--ink-soft);}
+
+footer{padding:32px 0 60px; font-size:12px; color:var(--ink-soft); border-top:1px solid var(--line);}
+
+@media(min-width:640px){
+  .plans{grid-template-columns:repeat(2,1fr);}
+  .hero h1{font-size:44px;}
+}

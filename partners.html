@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>파트너스 지원 — 취재시작</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="case-header">
+  <div class="brand">취재시작</div>
+  <nav>
+    <a href="index.html">민원 접수</a>
+    <a href="partners.html" class="active">파트너스 지원</a>
+  </nav>
+</header>
+
+<main class="wrap">
+
+  <section class="hero">
+    <div class="case-no">PARTNER RECRUITMENT</div>
+    <h1>행정사, 기자와<br>함께 사건을 해결합니다.</h1>
+    <p class="lead">건바이건 원격 서류 작성, 취재·공론화 협업이 필요할 때 연락드립니다. 등록 후 검토를 거쳐 승인됩니다.</p>
+  </section>
+
+  <hr class="divider">
+
+  <section id="apply">
+    <div class="eyebrow">Apply · 파트너 등록</div>
+    <h2 style="font-size:24px;">파트너 등록 신청</h2>
+    <div class="form-card">
+      <div id="applyMsg" class="msg"></div>
+      <form id="partnerForm">
+        <div class="field">
+          <label>파트너 유형</label>
+          <div class="radio-row">
+            <label><input type="radio" name="specialty" value="행정사" checked> 행정사</label>
+            <label><input type="radio" name="specialty" value="기자"> 기자</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="name">이름 / 소속</label>
+          <input type="text" id="name" placeholder="예: 홍길동 (OO행정사사무소)" required>
+        </div>
+
+        <div class="field" id="licenseField">
+          <label for="license">자격증 번호</label>
+          <input type="text" id="license" placeholder="행정사 등록번호">
+          <div class="hint">기자로 등록하시는 경우 소속 언론사명을 입력해주세요.</div>
+        </div>
+
+        <div class="field">
+          <label for="phone">연락처</label>
+          <input type="tel" id="phone" placeholder="010-0000-0000" required>
+        </div>
+
+        <div class="field">
+          <label for="email">이메일</label>
+          <input type="email" id="email" required>
+        </div>
+
+        <div class="field">
+          <label class="consent">
+            <input type="checkbox" id="consent" required>
+            <span>등록 정보는 파트너 심사 및 사건 배정 목적으로만 사용되며, 승인 여부는 이메일 또는 연락처로 안내드립니다.</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn primary block" id="submitBtn">등록 신청하기</button>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<footer class="wrap">
+  <p>취재시작 · 사업자 정보: [상호명] · [대표자명] · 사업자등록번호 [000-00-00000]</p>
+  <p><a href="#">개인정보처리방침</a> · <a href="#">이용약관</a></p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script>
+document.querySelectorAll('input[name=specialty]').forEach(r=>{
+  r.addEventListener('change', e=>{
+    const label = document.querySelector('#licenseField label');
+    label.textContent = e.target.value === '기자' ? '소속 언론사' : '자격증 번호';
+  });
+});
+
+function showMsg(el, text, type){
+  el.textContent = text;
+  el.className = 'msg show ' + type;
+}
+
+document.getElementById('partnerForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  const msgEl = document.getElementById('applyMsg');
+  btn.disabled = true; btn.textContent = '등록 중...';
+
+  try{
+    const { error } = await supabase.from('partners').insert({
+      name: document.getElementById('name').value,
+      license_number: document.getElementById('license').value || null,
+      phone: document.getElementById('phone').value,
+      email: document.getElementById('email').value,
+      specialty: document.querySelector('input[name=specialty]:checked').value,
+      status: 'pending'
+    });
+
+    if(error) throw error;
+
+    showMsg(msgEl, '등록 신청이 접수되었습니다. 검토 후 연락드릴게요.', 'success');
+    document.getElementById('partnerForm').reset();
+  }catch(err){
+    console.error(err);
+    showMsg(msgEl, '등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error');
+  }finally{
+    btn.disabled = false; btn.textContent = '등록 신청하기';
+  }
+});
+</script>
+</body>
+</html>
