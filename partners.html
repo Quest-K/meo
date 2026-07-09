@@ -102,7 +102,7 @@ document.getElementById('partnerForm').addEventListener('submit', async (e)=>{
   btn.disabled = true; btn.textContent = '등록 중...';
 
   try{
-    const { error } = await supabase.from('partners').insert({
+    const { error } = await supabaseClient.from('partners').insert({
       name: document.getElementById('name').value,
       license_number: document.getElementById('license').value || null,
       phone: document.getElementById('phone').value,
