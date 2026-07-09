@@ -237,7 +237,7 @@ document.getElementById('reportForm').addEventListener('submit', async (e)=>{
 
   try{
     // 1) users 테이블에 제보자 정보 저장
-    const { data: userRow, error: userErr } = await supabase
+    const { data: userRow, error: userErr } = await supabaseClient
       .from('users')
       .insert({
         name: document.getElementById('name').value,
@@ -250,7 +250,7 @@ document.getElementById('reportForm').addEventListener('submit', async (e)=>{
     if(userErr) throw userErr;
 
     // 2) reports 테이블에 사건 저장
-    const { data: reportRow, error: reportErr } = await supabase
+    const { data: reportRow, error: reportErr } = await supabaseClient
       .from('reports')
       .insert({
         user_id: userRow.id,
@@ -290,7 +290,7 @@ document.getElementById('lookupBtn').addEventListener('click', async ()=>{
     return;
   }
 
-  const { data, error } = await supabase.rpc('lookup_report', { p_id: Number(id), p_phone: phone });
+  const { data, error } = await supabaseClient.rpc('lookup_report', { p_id: Number(id), p_phone: phone });
 
   if(error || !data || data.length===0){
     showMsg(msgEl, '일치하는 민원을 찾을 수 없습니다. 정보를 다시 확인해주세요.', 'error');
