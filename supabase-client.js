@@ -3,6 +3,6 @@
 // service_role 키는 절대 프론트엔드 코드에 넣지 마세요.
 
 const SUPABASE_URL = "https://kpooxiwiqkcizhtdleor.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_NOHbGEe8ydTi2seNRLWlvQ_XVmDhaFP";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtwb294aXdpcWtjaXpodGRsZW9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MjA2MTEsImV4cCI6MjA5OTE5NjYxMX0.4aBRHVw2OK9mfX78zbfSyxqKRcYnvejCGH22MyrVTA8";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
