@@ -236,38 +236,34 @@ document.getElementById('reportForm').addEventListener('submit', async (e)=>{
   const planType = document.querySelector('input[name=planType]:checked').value;
 
   try{
-    // 1) users 테이블에 제보자 정보 저장
-    const { data: userRow, error: userErr } = await supabaseClient
-      .from('users')
-      .insert({
-        name: document.getElementById('name').value,
-        phone: document.getElementById('phone').value,
-        email: document.getElementById('email').value || null
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/submit_report`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        p_name: document.getElementById('name').value,
+        p_phone: document.getElementById('phone').value,
+        p_email: document.getElementById('email').value || null,
+        p_title: document.getElementById('title').value,
+        p_content: document.getElementById('content').value,
+        p_plan_type: planType,
+        p_has_existing_civil: hasExisting,
+        p_civil_receipt_number: hasExisting ? document.getElementById('civilReceiptNumber').value : null,
+        p_gov_platform_name: hasExisting ? document.getElementById('govPlatformName').value : null
       })
-      .select('id')
-      .single();
+    });
 
-    if(userErr) throw userErr;
+    if(!res.ok){
+      const errText = await res.text();
+      throw new Error(errText);
+    }
 
-    // 2) reports 테이블에 사건 저장
-    const { data: reportRow, error: reportErr } = await supabaseClient
-      .from('reports')
-      .insert({
-        user_id: userRow.id,
-        title: document.getElementById('title').value,
-        content: document.getElementById('content').value,
-        status: 'RECEIPT',
-        plan_type: planType,
-        has_existing_civil: hasExisting,
-        civil_receipt_number: hasExisting ? document.getElementById('civilReceiptNumber').value : null,
-        gov_platform_name: hasExisting ? document.getElementById('govPlatformName').value : null
-      })
-      .select('id')
-      .single();
+    const reportId = await res.json();
 
-    if(reportErr) throw reportErr;
-
-    showMsg(msgEl, `접수 완료되었습니다. 조회번호는 ${reportRow.id}번입니다. 무료 AI 분석 결과를 곧 안내드릴게요.`, 'success');
+    showMsg(msgEl, `접수 완료되었습니다. 조회번호는 ${reportId}번입니다. 무료 AI 분석 결과를 곧 안내드릴게요.`, 'success');
     document.getElementById('reportForm').reset();
     document.getElementById('existingBlock').classList.remove('show');
   }catch(err){
@@ -290,9 +286,24 @@ document.getElementById('lookupBtn').addEventListener('click', async ()=>{
     return;
   }
 
-  const { data, error } = await supabaseClient.rpc('lookup_report', { p_id: Number(id), p_phone: phone });
+  let data;
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/lookup_report`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ p_id: Number(id), p_phone: phone })
+    });
+    data = await res.json();
+  }catch(err){
+    console.error(err);
+    data = null;
+  }
 
-  if(error || !data || data.length===0){
+  if(!data || data.length===0){
     showMsg(msgEl, '일치하는 민원을 찾을 수 없습니다. 정보를 다시 확인해주세요.', 'error');
     resultEl.innerHTML = '';
     return;
