@@ -73,7 +73,7 @@
     <div id="partnersPanel" class="panel">
       <table>
         <thead>
-          <tr><th>이름</th><th>유형</th><th>연락처</th><th>상태</th><th>승인</th></tr>
+          <tr><th>이름</th><th>유형</th><th>연락처</th><th>상태</th><th>배정</th><th>승인</th></tr>
         </thead>
         <tbody id="partnersBody"></tbody>
       </table>
@@ -223,9 +223,11 @@ async function loadReports(){
   document.querySelectorAll('.status-select').forEach(sel=>{
     sel.addEventListener('change', async ()=>{
       await supabaseClient.from('reports').update({ status: sel.value }).eq('id', sel.dataset.id);
+      const report = data.find(r => r.id === Number(sel.dataset.id));
       await supabaseClient.from('activity_log').insert({
         report_id: Number(sel.dataset.id),
-        action: `상태 변경 → ${STATUS_LABELS[sel.value] || sel.value}`
+        partner_id: report ? report.assigned_partner_id : null,
+        action: `상태 변경 → ${STATUS_LABELS[sel.value] || sel.value} (#${sel.dataset.id}: ${report ? report.title : ''})`
       });
     });
   });
@@ -237,17 +239,18 @@ async function loadReports(){
       await supabaseClient.from('reports').update({ assigned_partner_id: partnerId }).eq('id', reportId);
       if(partnerId){
         const partner = approvedPartners.find(p => p.id === partnerId);
+        const report = data.find(r => r.id === reportId);
         await supabaseClient.from('activity_log').insert({
           partner_id: partnerId,
           report_id: reportId,
-          action: '사건 배정',
-          note: partner ? `${partner.name}에게 배정` : null
+          action: `사건 배정 (#${reportId}: ${report ? report.title : ''})`,
+          note: partner ? `담당: ${partner.name}` : null
         });
       }
     });
   });
 
-  document.querySelectorAll('.detail-toggle').forEach(btn=>{
+  document.querySelectorAll('#reportsBody .detail-toggle').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const row = document.getElementById(btn.dataset.target);
       row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
@@ -295,19 +298,51 @@ async function loadPartners(){
     .order('created_at', { ascending:false });
 
   const body = document.getElementById('partnersBody');
-  if(error){ body.innerHTML = `<tr><td colspan="5">불러오기 실패</td></tr>`; return; }
+  if(error){ body.innerHTML = `<tr><td colspan="6">불러오기 실패</td></tr>`; return; }
 
-  body.innerHTML = data.map(p => `
+  // 파트너별 배정 사건 목록 조회
+  const partnerIds = data.map(p => p.id);
+  let assignmentsByPartner = {};
+  if(partnerIds.length){
+    const { data: assignedReports } = await supabaseClient
+      .from('reports')
+      .select('id,title,status,assigned_partner_id')
+      .in('assigned_partner_id', partnerIds);
+    (assignedReports || []).forEach(r => {
+      if(!assignmentsByPartner[r.assigned_partner_id]) assignmentsByPartner[r.assigned_partner_id] = [];
+      assignmentsByPartner[r.assigned_partner_id].push(r);
+    });
+  }
+
+  body.innerHTML = data.map(p => {
+    const assigned = assignmentsByPartner[p.id] || [];
+    return `
     <tr>
       <td>${p.name}</td>
       <td>${p.specialty || '-'}${p.expertise_area ? ' · ' + p.expertise_area : ''}</td>
       <td>${p.phone}</td>
       <td><span class="badge ${p.status}">${p.status==='approved'?'승인':'대기'}</span></td>
+      <td>${assigned.length}건 ${assigned.length ? `<button class="btn detail-toggle" data-target="partner-detail-${p.id}" style="padding:4px 8px; font-size:11px;">보기</button>` : ''}</td>
       <td class="row-actions">
         ${p.status !== 'approved' ? `<button class="btn" data-approve="${p.id}">승인</button>` : ''}
       </td>
     </tr>
-  `).join('');
+    ${assigned.length ? `
+    <tr class="detail-row" id="partner-detail-${p.id}" style="display:none;">
+      <td colspan="6">
+        <div class="detail-grid">
+          ${assigned.map(r => `<div class="value">#${r.id} ${r.title} — <span class="badge ${r.status}">${STATUS_LABELS[r.status]||r.status}</span></div>`).join('')}
+        </div>
+      </td>
+    </tr>` : ''}
+  `}).join('');
+
+  document.querySelectorAll('#partnersBody .detail-toggle').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const row = document.getElementById(btn.dataset.target);
+      if(row) row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+    });
+  });
 
   document.querySelectorAll('[data-approve]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
