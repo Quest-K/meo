@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>배정 사건 확인 — 취재시작</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .case-card{border:1.5px solid var(--ink); background:#F7F4EC; padding:18px; margin-bottom:14px;}
+  .case-card h3{font-size:16px; margin-bottom:8px;}
+  .case-card .meta{font-size:12px; color:var(--ink-soft); margin-bottom:10px;}
+  .case-card .content{font-size:13.5px; white-space:pre-wrap;}
+</style>
+</head>
+<body>
+
+<header class="case-header">
+  <div class="brand">취재시작 · 파트너</div>
+</header>
+
+<main class="wrap" style="padding-top:32px; padding-bottom:60px;">
+  <div class="case-no">PARTNER ACCESS</div>
+  <h1 style="font-size:22px;">내 배정 사건 확인</h1>
+  <p style="color:var(--ink-soft); font-size:13.5px;">등록하신 연락처를 입력하면 현재 배정된 사건을 확인할 수 있습니다.</p>
+
+  <div class="form-card" style="margin-top:20px;">
+    <div id="msg" class="msg"></div>
+    <div class="field">
+      <label for="phone">등록된 연락처</label>
+      <input type="tel" id="phone" placeholder="010-0000-0000">
+    </div>
+    <button class="btn primary block" id="lookupBtn">조회하기</button>
+  </div>
+
+  <div id="results" style="margin-top:24px;"></div>
+</main>
+
+<script>
+const SUPABASE_URL = "https://kpooxiwiqkcizhtdleor.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtwb294aXdpcWtjaXpodGRsZW9yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MjA2MTEsImV4cCI6MjA5OTE5NjYxMX0.4aBRHVw2OK9mfX78zbfSyxqKRcYnvejCGH22MyrVTA8";
+
+const STATUS_LABELS = { RECEIPT:'접수', ANALYSIS:'분석·배정', SUBMISSION:'접수·대행', PRESSURE:'압박·공론화', RESOLVED:'해결' };
+
+function showMsg(text, type){
+  const el = document.getElementById('msg');
+  el.textContent = text;
+  el.className = 'msg show ' + type;
+}
+
+document.getElementById('lookupBtn').addEventListener('click', async ()=>{
+  const phone = document.getElementById('phone').value;
+  const resultsEl = document.getElementById('results');
+  resultsEl.innerHTML = '';
+
+  if(!phone){ showMsg('연락처를 입력해주세요.', 'error'); return; }
+
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_partner_assignments`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ p_phone: phone })
+    });
+    const data = await res.json();
+
+    if(!Array.isArray(data) || data.length === 0){
+      showMsg('배정된 사건이 없거나 승인 대기 중입니다.', 'error');
+      return;
+    }
+
+    document.getElementById('msg').classList.remove('show');
+    resultsEl.innerHTML = data.map(c => `
+      <div class="case-card">
+        <div class="meta">사건번호 ${c.report_id} · ${STATUS_LABELS[c.status] || c.status}</div>
+        <h3>${c.title}</h3>
+        <div class="content">${(c.content || '').replace(/</g,'&lt;')}</div>
+      </div>
+    `).join('');
+  }catch(err){
+    showMsg('조회 중 오류가 발생했습니다.', 'error');
+  }
+});
+</script>
+</body>
+</html>
