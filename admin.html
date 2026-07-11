@@ -172,7 +172,7 @@ async function loadReports(){
 
   const { data, error } = await supabaseClient
     .from('reports')
-    .select('id,title,content,plan_type,status,created_at,user_id,has_existing_civil,civil_receipt_number,gov_platform_name,assigned_officer,officer_contact,gov_latest_response,assigned_partner_id')
+    .select('id,title,content,plan_type,status,created_at,user_id,has_existing_civil,civil_receipt_number,gov_platform_name,assigned_officer,officer_contact,gov_latest_response,assigned_partner_id,category,ai_report_content')
     .order('created_at', { ascending:false });
 
   if(error){ body.innerHTML = `<tr><td colspan="8">불러오기 실패: ${error.message}</td></tr>`; return; }
@@ -202,7 +202,7 @@ async function loadReports(){
     return `
     <tr>
       <td>${r.id}</td>
-      <td>${r.title}</td>
+      <td>${r.title} ${r.category ? `<span class="badge ANALYSIS">${r.category}</span>` : ''}</td>
       <td>${r.plan_type || '-'}</td>
       <td>
         <select class="status-select" data-id="${r.id}">
@@ -223,7 +223,8 @@ async function loadReports(){
       <td colspan="8">
         <div class="detail-grid">
           <div><span class="label">제보자</span><div class="value">${u.name || '-'} · ${u.phone || '-'} ${u.email ? '· ' + u.email : ''}</div></div>
-          <div><span class="label">사연 / 민원 내용</span><div class="value">${(r.content || '').replace(/</g,'&lt;')}</div></div>
+          <div><span class="label">사연 / 민원 내용 (원본)</span><div class="value">${(r.content || '').replace(/</g,'&lt;')}</div></div>
+          <div><span class="label">AI 정리본 ${r.category ? '· 카테고리: ' + r.category : ''}</span><div class="value">${r.ai_report_content ? r.ai_report_content.replace(/</g,'&lt;') : '(아직 분석 전)'}</div></div>
           <div><span class="label">기존 민원 접수 여부</span><div class="value">${r.has_existing_civil ? `있음 (접수번호: ${r.civil_receipt_number || '-'}, 기관: ${r.gov_platform_name || '-'})` : '없음(처음 접수)'}</div></div>
           <div><span class="label">담당 공무원</span><div class="value">${r.assigned_officer || '-'} ${r.officer_contact ? '· ' + r.officer_contact : ''}</div></div>
           <div><span class="label">최근 정부 응답</span><div class="value">${r.gov_latest_response || '-'}</div></div>
