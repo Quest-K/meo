@@ -19,7 +19,7 @@
 <main class="wrap">
 
   <section class="hero">
-    <div class="case-no">PARTNER RECRUITMENT</div>
+    <div class="case-no">파트너 모집</div>
     <h1>행정사, 기자와<br>함께 사건을 해결합니다.</h1>
     <p class="lead">건바이건 원격 서류 작성, 취재·공론화 협업이 필요할 때 연락드립니다. 등록 후 검토를 거쳐 승인됩니다.</p>
   </section>
@@ -27,7 +27,7 @@
   <hr class="divider">
 
   <section id="apply">
-    <div class="eyebrow">Apply · 파트너 등록</div>
+    <div class="eyebrow">파트너 등록</div>
     <h2 style="font-size:24px;">파트너 등록 신청</h2>
     <div class="form-card">
       <div id="applyMsg" class="msg"></div>
@@ -49,6 +49,20 @@
           <label for="license">자격증 번호</label>
           <input type="text" id="license" placeholder="행정사 등록번호">
           <div class="hint">기자로 등록하시는 경우 소속 언론사명을 입력해주세요.</div>
+        </div>
+
+        <div class="field" id="expertiseField">
+          <label for="expertiseArea">전문분야</label>
+          <select id="expertiseArea">
+            <option value="건축/부동산">건축/부동산</option>
+            <option value="도로/교통">도로/교통</option>
+            <option value="환경/소음">환경/소음</option>
+            <option value="세무/재정">세무/재정</option>
+            <option value="노동/고용">노동/고용</option>
+            <option value="일반행정">일반행정</option>
+            <option value="기타">기타</option>
+          </select>
+          <div class="hint">가장 자신 있는 분야 하나를 선택해주세요. 사건 배정 시 참고합니다.</div>
         </div>
 
         <div class="field">
@@ -87,6 +101,7 @@ document.querySelectorAll('input[name=specialty]').forEach(r=>{
   r.addEventListener('change', e=>{
     const label = document.querySelector('#licenseField label');
     label.textContent = e.target.value === '기자' ? '소속 언론사' : '자격증 번호';
+    document.getElementById('expertiseField').style.display = e.target.value === '기자' ? 'none' : 'block';
   });
 });
 
@@ -113,6 +128,8 @@ document.getElementById('partnerForm').addEventListener('submit', async (e)=>{
       body: JSON.stringify({
         name: document.getElementById('name').value,
         license_number: document.getElementById('license').value || null,
+        expertise_area: document.querySelector('input[name=specialty]:checked').value === '행정사'
+          ? document.getElementById('expertiseArea').value : null,
         phone: document.getElementById('phone').value,
         email: document.getElementById('email').value,
         specialty: document.querySelector('input[name=specialty]:checked').value,
