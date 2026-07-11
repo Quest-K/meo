@@ -13,6 +13,7 @@
   <nav>
     <a href="index.html">민원 접수</a>
     <a href="partners.html" class="active">파트너스 지원</a>
+    <a href="partner-portal.html">배정 확인</a>
   </nav>
 </header>
 
@@ -142,7 +143,7 @@ document.getElementById('partnerForm').addEventListener('submit', async (e)=>{
       throw new Error(errText);
     }
 
-    showMsg(msgEl, '등록 신청이 접수되었습니다. 검토 후 연락드릴게요.', 'success');
+    showMsg(msgEl, '등록 신청이 접수되었습니다. 승인 후에는 상단 "배정 확인" 메뉴에서 등록하신 연락처로 배정 사건을 확인하실 수 있어요.', 'success');
     document.getElementById('partnerForm').reset();
   }catch(err){
     console.error(err);
