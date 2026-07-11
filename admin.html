@@ -21,6 +21,7 @@
   .detail-grid{display:grid; grid-template-columns:1fr; gap:10px;}
   .detail-grid .label{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); text-transform:uppercase;}
   .detail-grid .value{margin-bottom:8px; white-space:pre-wrap;}
+  .overdue{color:var(--stamp); font-weight:700;}
 </style>
 </head>
 <body>
@@ -35,7 +36,7 @@
 <main class="wrap" style="padding-top:32px;">
 
   <section id="loginSection">
-    <div class="eyebrow">Admin Login</div>
+    <div class="eyebrow">관리자 로그인</div>
     <h2 style="font-size:22px;">관리자 로그인</h2>
     <div class="form-card">
       <div id="loginMsg" class="msg"></div>
@@ -62,7 +63,7 @@
     <div id="reportsPanel" class="panel show">
       <table>
         <thead>
-          <tr><th>ID</th><th>제목</th><th>요금제</th><th>상태</th><th>접수일</th><th></th></tr>
+          <tr><th>ID</th><th>제목</th><th>요금제</th><th>상태</th><th>접수일</th><th>경과일</th><th></th></tr>
         </thead>
         <tbody id="reportsBody"></tbody>
       </table>
@@ -90,6 +91,7 @@ if(typeof window.supabase === 'undefined'){
   throw new Error('supabase-js failed to load');
 }
 const STATUS_OPTIONS = ['RECEIPT','ANALYSIS','SUBMISSION','PRESSURE','RESOLVED'];
+const STATUS_LABELS = { RECEIPT:'접수', ANALYSIS:'분석·배정', SUBMISSION:'접수·대행', PRESSURE:'압박·공론화', RESOLVED:'해결' };
 
 function showMsg(el, text, type){
   el.textContent = text;
@@ -148,7 +150,7 @@ async function loadReports(){
     .select('id,title,content,plan_type,status,created_at,user_id,has_existing_civil,civil_receipt_number,gov_platform_name,assigned_officer,officer_contact,gov_latest_response')
     .order('created_at', { ascending:false });
 
-  if(error){ body.innerHTML = `<tr><td colspan="6">불러오기 실패: ${error.message}</td></tr>`; return; }
+  if(error){ body.innerHTML = `<tr><td colspan="7">불러오기 실패: ${error.message}</td></tr>`; return; }
 
   // 연락처 정보를 위해 관련 유저 정보 별도 조회 후 매칭
   const userIds = [...new Set(data.map(r => r.user_id).filter(Boolean))];
@@ -163,6 +165,8 @@ async function loadReports(){
 
   body.innerHTML = data.map(r => {
     const u = usersById[r.user_id] || {};
+    const daysElapsed = Math.floor((Date.now() - new Date(r.created_at).getTime()) / 86400000);
+    const isOverdue = r.status === 'SUBMISSION' && daysElapsed >= 7;
     return `
     <tr>
       <td>${r.id}</td>
@@ -170,14 +174,15 @@ async function loadReports(){
       <td>${r.plan_type || '-'}</td>
       <td>
         <select class="status-select" data-id="${r.id}">
-          ${STATUS_OPTIONS.map(s=>`<option value="${s}" ${s===r.status?'selected':''}>${s}</option>`).join('')}
+          ${STATUS_OPTIONS.map(s=>`<option value="${s}" ${s===r.status?'selected':''}>${STATUS_LABELS[s]}</option>`).join('')}
         </select>
       </td>
       <td>${new Date(r.created_at).toLocaleDateString('ko-KR')}</td>
+      <td class="${isOverdue?'overdue':''}">${daysElapsed}일 ${isOverdue?'(기한초과)':''}</td>
       <td><button class="btn detail-toggle" data-target="detail-${r.id}">상세</button></td>
     </tr>
     <tr class="detail-row" id="detail-${r.id}" style="display:none;">
-      <td colspan="6">
+      <td colspan="7">
         <div class="detail-grid">
           <div><span class="label">제보자</span><div class="value">${u.name || '-'} · ${u.phone || '-'} ${u.email ? '· ' + u.email : ''}</div></div>
           <div><span class="label">사연 / 민원 내용</span><div class="value">${(r.content || '').replace(/</g,'&lt;')}</div></div>
