@@ -19,7 +19,7 @@
 <main class="wrap">
 
   <section class="hero">
-    <div class="case-no">CASE FILE — OPEN</div>
+    <div class="case-no">진행중인 사건</div>
     <h1>방치된 민원,<br>취재가 시작되면<br>업무가 재개됩니다.</h1>
     <p class="lead">행정사와 기자가 함께 붙는 민원 처리 대행 서비스. AI가 사건을 먼저 분석하고, 전문가가 서류를 작성하고, 지연되면 저희가 대신 압박합니다.</p>
     <a href="#report" class="btn primary">무료 AI 분석 신청</a>
@@ -29,41 +29,41 @@
   <hr class="divider">
 
   <section id="process">
-    <div class="eyebrow">Case Progress · 처리 절차</div>
+    <div class="eyebrow">처리 절차</div>
     <h2 style="font-size:24px;">사건은 5단계로 진행됩니다</h2>
     <ul class="timeline">
       <li class="done">
         <div class="dot"></div>
         <div>
-          <div class="t-title"><span class="stamp receipt" style="transform:none;border:none;padding:0;">RECEIPT</span> 제보 접수</div>
+          <div class="t-title">접수</div>
           <div class="t-desc">제보 폼 작성 즉시 무료 AI 분석 리포트가 도착합니다.</div>
         </div>
       </li>
       <li>
         <div class="dot"></div>
         <div>
-          <div class="t-title">ANALYSIS 사건 분석</div>
+          <div class="t-title">분석·배정</div>
           <div class="t-desc">요금제 결제 후 담당자가 연락드려 기존 접수 여부·담당 부서 등 핵심 정보를 확인하고, 파트너 행정사에게 사건을 전달합니다.</div>
         </div>
       </li>
       <li>
         <div class="dot"></div>
         <div>
-          <div class="t-title">SUBMISSION 접수 및 대행</div>
+          <div class="t-title">접수·대행</div>
           <div class="t-desc">행정사가 작성한 서류를 셀프 제출(라이트) 하거나, 플랫폼이 직접 대행 접수(스탠다드 이상)합니다.</div>
         </div>
       </li>
       <li>
         <div class="dot"></div>
         <div>
-          <div class="t-title">PRESSURE 압박 및 공론화</div>
-          <div class="t-desc">법정 처리 기한이 지나면 지자체장 감사 요청 → 지역구 의원실 연계 → 언론 제보 순으로 단계별 압박을 진행합니다.</div>
+          <div class="t-title">압박·공론화</div>
+          <div class="t-desc">법정 처리기한(고충민원 기준 접수 후 7일) 경과 시 1차로 지자체장 감사 요청 공문을 발송합니다. 이후 5영업일 내 무응답 시 2차 지역구 의원실 연계, 다시 5영업일 내 무응답 시 3차 언론 제보로 이어집니다.</div>
         </div>
       </li>
       <li>
         <div class="dot"></div>
         <div>
-          <div class="t-title">RESOLVED 해결</div>
+          <div class="t-title">해결</div>
           <div class="t-desc">처리 결과를 리포트로 전달드리고 사건을 종결합니다.</div>
         </div>
       </li>
@@ -73,7 +73,7 @@
   <hr class="divider">
 
   <section id="plans">
-    <div class="eyebrow">Pricing · 요금제</div>
+    <div class="eyebrow">요금제</div>
     <h2 style="font-size:24px;">사건 진행 방식을 선택하세요</h2>
     <div class="plans">
       <div class="plan">
@@ -117,7 +117,7 @@
   <hr class="divider">
 
   <section id="report">
-    <div class="eyebrow">Submit · 제보 접수</div>
+    <div class="eyebrow">제보 접수</div>
     <h2 style="font-size:24px;">사건 접수</h2>
     <div class="form-card">
       <div id="reportMsg" class="msg"></div>
@@ -187,7 +187,7 @@
   <hr class="divider">
 
   <section id="lookup">
-    <div class="eyebrow">Track · 조회</div>
+    <div class="eyebrow">내 민원 조회</div>
     <h2 style="font-size:24px;">내 민원 조회</h2>
     <div class="form-card">
       <div id="lookupMsg" class="msg"></div>
@@ -311,8 +311,9 @@ document.getElementById('lookupBtn').addEventListener('click', async ()=>{
 
   msgEl.classList.remove('show');
   const r = data[0];
+  const STATUS_LABELS = { RECEIPT:'접수', ANALYSIS:'분석·배정', SUBMISSION:'접수·대행', PRESSURE:'압박·공론화', RESOLVED:'해결' };
   resultEl.innerHTML = `
-    <div class="stamp ${r.status==='RESOLVED'?'resolved':r.status==='PRESSURE'?'pressure':r.status==='RECEIPT'?'receipt':'progress'}">${r.status}</div>
+    <div class="stamp ${r.status==='RESOLVED'?'resolved':r.status==='PRESSURE'?'pressure':r.status==='RECEIPT'?'receipt':'progress'}">${STATUS_LABELS[r.status] || r.status}</div>
     <h3 style="margin-top:14px;">${r.title}</h3>
     <p style="font-size:13px;color:var(--ink-soft);">최근 업데이트: ${r.gov_latest_response || '아직 업데이트된 내용이 없습니다.'}</p>
   `;
