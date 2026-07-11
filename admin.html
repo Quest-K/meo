@@ -59,6 +59,7 @@
       <button class="tab-btn active" data-panel="reportsPanel">민원 관리</button>
       <button class="tab-btn" data-panel="partnersPanel">파트너 승인</button>
       <button class="tab-btn" data-panel="activityPanel">파트너 활동</button>
+      <button class="tab-btn" data-panel="settlementsPanel">정산 관리</button>
     </div>
 
     <div id="reportsPanel" class="panel show">
@@ -85,6 +86,16 @@
           <tr><th>일시</th><th>파트너</th><th>사건</th><th>활동</th></tr>
         </thead>
         <tbody id="activityBody"></tbody>
+      </table>
+    </div>
+
+    <div id="settlementsPanel" class="panel">
+      <div id="settlementSummary" style="margin-bottom:16px; font-family:'IBM Plex Mono',monospace; font-size:13px;"></div>
+      <table>
+        <thead>
+          <tr><th>사건</th><th>파트너</th><th>요금제</th><th>결제금액</th><th>파트너지급</th><th>플랫폼수익</th><th>완료</th></tr>
+        </thead>
+        <tbody id="settlementsBody"></tbody>
       </table>
     </div>
   </section>
@@ -117,6 +128,7 @@ async function checkSession(){
     loadReports();
     loadPartners();
     loadActivity();
+    loadSettlements();
   }
 }
 
@@ -352,6 +364,93 @@ async function loadPartners(){
         action: '파트너 승인'
       });
       loadPartners();
+    });
+  });
+}
+
+const PLAN_PRICES = { free:0, light:34000, standard:140000, pro:250000 };
+
+async function loadSettlements(){
+  const body = document.getElementById('settlementsBody');
+  const summaryEl = document.getElementById('settlementSummary');
+
+  // 파트너가 배정된 사건 대상
+  const { data: reports, error } = await supabaseClient
+    .from('reports')
+    .select('id,title,plan_type,status,assigned_partner_id')
+    .not('assigned_partner_id','is',null)
+    .order('id', { ascending:false });
+
+  if(error){ body.innerHTML = `<tr><td colspan="7">불러오기 실패: ${error.message}</td></tr>`; return; }
+
+  const partnerIds = [...new Set(reports.map(r=>r.assigned_partner_id).filter(Boolean))];
+  let partnersById = {};
+  if(partnerIds.length){
+    const { data: p } = await supabaseClient.from('partners').select('id,name').in('id', partnerIds);
+    (p||[]).forEach(x => partnersById[x.id] = x.name);
+  }
+
+  const reportIds = reports.map(r=>r.id);
+  let settlementsByReport = {};
+  if(reportIds.length){
+    const { data: s } = await supabaseClient.from('settlements').select('*').in('report_id', reportIds);
+    (s||[]).forEach(x => settlementsByReport[x.report_id] = x);
+  }
+
+  let totalAmount = 0, totalPayout = 0, totalFee = 0;
+
+  body.innerHTML = reports.map(r => {
+    const s = settlementsByReport[r.id];
+    const defaultAmount = s ? s.total_amount : (PLAN_PRICES[r.plan_type] || 0);
+    const defaultPayout = s ? s.partner_payout : 0;
+    const fee = defaultAmount - defaultPayout;
+    if(s && s.paid){
+      totalAmount += s.total_amount; totalPayout += s.partner_payout; totalFee += s.platform_fee;
+    }
+    return `
+    <tr data-report-id="${r.id}">
+      <td>#${r.id} ${r.title}</td>
+      <td>${partnersById[r.assigned_partner_id] || '-'}</td>
+      <td>${r.plan_type || '-'}</td>
+      <td><input type="number" class="amount-input" value="${defaultAmount}" style="width:90px;"></td>
+      <td><input type="number" class="payout-input" value="${defaultPayout}" style="width:90px;"></td>
+      <td class="fee-display">${fee.toLocaleString()}원</td>
+      <td>
+        <input type="checkbox" class="paid-check" ${s && s.paid ? 'checked' : ''}>
+        <button class="btn save-settlement" style="padding:4px 8px; font-size:11px; margin-left:4px;">저장</button>
+      </td>
+    </tr>
+  `}).join('');
+
+  summaryEl.textContent = `정산완료 기준 · 총 결제액 ${totalAmount.toLocaleString()}원 · 파트너 지급 ${totalPayout.toLocaleString()}원 · 플랫폼 수익 ${totalFee.toLocaleString()}원`;
+
+  document.querySelectorAll('#settlementsBody tr').forEach(tr=>{
+    const amountInput = tr.querySelector('.amount-input');
+    const payoutInput = tr.querySelector('.payout-input');
+    const feeDisplay = tr.querySelector('.fee-display');
+    const recalc = () => {
+      const fee = (Number(amountInput.value)||0) - (Number(payoutInput.value)||0);
+      feeDisplay.textContent = fee.toLocaleString() + '원';
+    };
+    amountInput.addEventListener('input', recalc);
+    payoutInput.addEventListener('input', recalc);
+
+    tr.querySelector('.save-settlement').addEventListener('click', async ()=>{
+      const reportId = Number(tr.dataset.reportId);
+      const report = reports.find(r=>r.id===reportId);
+      const paid = tr.querySelector('.paid-check').checked;
+      const { error } = await supabaseClient.from('settlements').upsert({
+        report_id: reportId,
+        partner_id: report.assigned_partner_id,
+        plan_type: report.plan_type,
+        total_amount: Number(amountInput.value)||0,
+        partner_payout: Number(payoutInput.value)||0,
+        paid: paid,
+        paid_at: paid ? new Date().toISOString() : null,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'report_id' });
+      if(error){ alert('저장 실패: ' + error.message); return; }
+      loadSettlements();
     });
   });
 }
