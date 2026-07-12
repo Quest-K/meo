@@ -136,6 +136,11 @@
           <input type="email" id="email">
         </div>
         <div class="field">
+          <label for="lookupPin">조회용 비밀번호 (숫자 4자리)</label>
+          <input type="text" id="lookupPin" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="예: 1234" required>
+          <div class="hint">나중에 "내 민원 조회"에서 연락처와 함께 입력합니다. 잊지 않을 숫자로 설정해주세요.</div>
+        </div>
+        <div class="field">
           <label for="title">제목</label>
           <input type="text" id="title" placeholder="예: 인도 파손 민원 3개월째 미처리" required>
         </div>
@@ -171,7 +176,7 @@
         </div>
 
         <div class="field">
-          <label>기존에 민원을 접수한 적이 있나요?</label>
+          <label>이 문제로 구청·정부기관에 민원을 접수하신 적이 있나요? (취재시작 접수 여부가 아니라, 관공서 접수 여부입니다)</label>
           <div class="radio-row">
             <label><input type="radio" name="hasExisting" value="yes"> 있음</label>
             <label><input type="radio" name="hasExisting" value="no" checked> 없음(처음 접수)</label>
@@ -184,6 +189,14 @@
             <div class="field">
               <label for="govPlatformName">접수한 플랫폼 / 기관</label>
               <input type="text" id="govPlatformName" placeholder="예: 국민신문고, 정부24, OO구청">
+            </div>
+            <div class="field">
+              <label for="govDepartment">담당 부서 (아는 경우)</label>
+              <input type="text" id="govDepartment" placeholder="예: 도로과, 환경위생과">
+            </div>
+            <div class="field">
+              <label for="civilReceiptDate">접수 일자 (대략적이어도 괜찮아요)</label>
+              <input type="date" id="civilReceiptDate">
             </div>
           </div>
         </div>
@@ -218,12 +231,12 @@
     <div class="form-card">
       <div id="lookupMsg" class="msg"></div>
       <div class="field">
-        <label for="lookupId">조회번호 (접수 완료 시 안내받은 번호)</label>
-        <input type="text" id="lookupId" inputmode="numeric">
-      </div>
-      <div class="field">
         <label for="lookupPhone">연락처</label>
         <input type="tel" id="lookupPhone" placeholder="010-0000-0000">
+      </div>
+      <div class="field">
+        <label for="lookupPinInput">비밀번호 (접수 시 설정한 4자리)</label>
+        <input type="text" id="lookupPinInput" inputmode="numeric" maxlength="4" placeholder="예: 1234">
       </div>
       <button class="btn block" id="lookupBtn">조회하기</button>
       <div id="lookupResult" style="margin-top:18px;"></div>
@@ -294,7 +307,10 @@ document.getElementById('reportForm').addEventListener('submit', async (e)=>{
         p_gov_platform_name: hasExisting ? document.getElementById('govPlatformName').value : null,
         p_region_sido: regionNa ? null : document.getElementById('regionSido').value,
         p_region_detail: regionNa ? null : document.getElementById('regionDetail').value,
-        p_region_na: regionNa
+        p_region_na: regionNa,
+        p_civil_receipt_date: hasExisting ? (document.getElementById('civilReceiptDate').value || null) : null,
+        p_gov_department: hasExisting ? (document.getElementById('govDepartment').value || null) : null,
+        p_lookup_pin: document.getElementById('lookupPin').value
       })
     });
 
@@ -305,7 +321,7 @@ document.getElementById('reportForm').addEventListener('submit', async (e)=>{
 
     const reportId = await res.json();
 
-    showMsg(msgEl, `접수 완료되었습니다. 조회번호는 ${reportId}번입니다. 무료 AI 분석 결과를 곧 안내드릴게요.`, 'success');
+    showMsg(msgEl, `접수 완료되었습니다. 진행상황은 "내 민원 조회"에서 연락처와 설정하신 비밀번호로 확인하실 수 있어요.`, 'success');
     document.getElementById('reportForm').reset();
     document.getElementById('existingBlock').classList.remove('show');
     document.getElementById('regionBlock').style.display = 'block';
@@ -319,15 +335,15 @@ document.getElementById('reportForm').addEventListener('submit', async (e)=>{
   }
 });
 
-// 내 민원 조회 — SQL 섹션에서 생성하는 lookup_report RPC 함수 사용
+// 내 민원 조회 — 연락처 + 비밀번호로 조회, 여러 건이면 전체 리스트 표시
 document.getElementById('lookupBtn').addEventListener('click', async ()=>{
   const msgEl = document.getElementById('lookupMsg');
   const resultEl = document.getElementById('lookupResult');
-  const id = document.getElementById('lookupId').value;
   const phone = document.getElementById('lookupPhone').value;
+  const pin = document.getElementById('lookupPinInput').value;
 
-  if(!id || !phone){
-    showMsg(msgEl, '조회번호와 연락처를 모두 입력해주세요.', 'error');
+  if(!phone || !pin){
+    showMsg(msgEl, '연락처와 비밀번호를 모두 입력해주세요.', 'error');
     return;
   }
 
@@ -340,7 +356,7 @@ document.getElementById('lookupBtn').addEventListener('click', async ()=>{
         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ p_id: Number(id), p_phone: phone })
+      body: JSON.stringify({ p_phone: phone, p_pin: pin })
     });
     data = await res.json();
   }catch(err){
@@ -349,19 +365,21 @@ document.getElementById('lookupBtn').addEventListener('click', async ()=>{
   }
 
   if(!data || data.length===0){
-    showMsg(msgEl, '일치하는 민원을 찾을 수 없습니다. 정보를 다시 확인해주세요.', 'error');
+    showMsg(msgEl, '일치하는 민원을 찾을 수 없습니다. 연락처와 비밀번호를 다시 확인해주세요.', 'error');
     resultEl.innerHTML = '';
     return;
   }
 
   msgEl.classList.remove('show');
-  const r = data[0];
   const STATUS_LABELS = { RECEIPT:'접수', ANALYSIS:'분석·배정', SUBMISSION:'접수·대행', PRESSURE:'압박·공론화', RESOLVED:'해결' };
-  resultEl.innerHTML = `
-    <div class="stamp ${r.status==='RESOLVED'?'resolved':r.status==='PRESSURE'?'pressure':r.status==='RECEIPT'?'receipt':'progress'}">${STATUS_LABELS[r.status] || r.status}</div>
-    <h3 style="margin-top:14px;">${r.title}</h3>
-    <p style="font-size:13px;color:var(--ink-soft);">최근 업데이트: ${r.gov_latest_response || '아직 업데이트된 내용이 없습니다.'}</p>
-  `;
+  resultEl.innerHTML = data.map(r => `
+    <div style="border:1.5px solid var(--ink); padding:16px; margin-bottom:14px; background:#F7F4EC;">
+      <div class="stamp ${r.status==='RESOLVED'?'resolved':r.status==='PRESSURE'?'pressure':r.status==='RECEIPT'?'receipt':'progress'}">${STATUS_LABELS[r.status] || r.status}</div>
+      <h3 style="margin-top:14px;">${r.title} ${r.category ? `<span class="badge ANALYSIS" style="font-size:11px;">${r.category}</span>` : ''}</h3>
+      <p style="font-size:13px;color:var(--ink-soft);">${r.ai_report_content ? 'AI 요약: ' + r.ai_report_content : ''}</p>
+      <p style="font-size:13px;color:var(--ink-soft);">최근 업데이트: ${r.gov_latest_response || '아직 업데이트된 내용이 없습니다.'}</p>
+    </div>
+  `).join('');
 });
 </script>
 </body>
