@@ -172,7 +172,7 @@ async function loadReports(){
 
   const { data, error } = await supabaseClient
     .from('reports')
-    .select('id,title,content,plan_type,status,created_at,user_id,has_existing_civil,civil_receipt_number,gov_platform_name,assigned_officer,officer_contact,gov_latest_response,assigned_partner_id,category,ai_report_content,region_sido,region_detail,region_na')
+    .select('id,title,content,plan_type,status,created_at,user_id,has_existing_civil,civil_receipt_number,gov_platform_name,gov_department,civil_receipt_date,assigned_officer,officer_contact,gov_latest_response,assigned_partner_id,category,ai_report_content,region_sido,region_detail,region_na')
     .order('created_at', { ascending:false });
 
   if(error){ body.innerHTML = `<tr><td colspan="8">불러오기 실패: ${error.message}</td></tr>`; return; }
@@ -195,14 +195,24 @@ async function loadReports(){
     .eq('status','approved');
   approvedPartners = partners || [];
 
+  // 동일 연락처 기준 중복 접수 탐지: phone -> [report id...]
+  const phoneToReportIds = {};
+  data.forEach(r => {
+    const phone = usersById[r.user_id]?.phone;
+    if(!phone) return;
+    if(!phoneToReportIds[phone]) phoneToReportIds[phone] = [];
+    phoneToReportIds[phone].push(r.id);
+  });
+
   body.innerHTML = data.map(r => {
     const u = usersById[r.user_id] || {};
+    const dupIds = (phoneToReportIds[u.phone] || []).filter(id => id !== r.id);
     const daysElapsed = Math.floor((Date.now() - new Date(r.created_at).getTime()) / 86400000);
     const isOverdue = r.status === 'SUBMISSION' && daysElapsed >= 7;
     return `
     <tr>
       <td>${r.id}</td>
-      <td>${r.title} ${r.category ? `<span class="badge ANALYSIS">${r.category}</span>` : ''}<br><span style="font-size:11px;color:var(--ink-soft);">${r.region_na ? '지역무관' : (r.region_sido||'')+' '+(r.region_detail||'')}</span></td>
+      <td>${r.title} ${r.category ? `<span class="badge ANALYSIS">${r.category}</span>` : ''} ${dupIds.length ? `<span class="badge pending">중복?</span>` : ''}<br><span style="font-size:11px;color:var(--ink-soft);">${r.region_na ? '지역무관' : (r.region_sido||'')+' '+(r.region_detail||'')}</span></td>
       <td>${r.plan_type || '-'}</td>
       <td>
         <select class="status-select" data-id="${r.id}">
@@ -226,7 +236,8 @@ async function loadReports(){
           <div><span class="label">제보자</span><div class="value">${u.name || '-'} · ${u.phone || '-'} ${u.email ? '· ' + u.email : ''}</div></div>
           <div><span class="label">사연 / 민원 내용 (원본)</span><div class="value">${(r.content || '').replace(/</g,'&lt;')}</div></div>
           <div><span class="label">AI 정리본 ${r.category ? '· 카테고리: ' + r.category : ''}</span><div class="value">${r.ai_report_content ? r.ai_report_content.replace(/</g,'&lt;') : '(아직 분석 전)'}</div></div>
-          <div><span class="label">기존 민원 접수 여부</span><div class="value">${r.has_existing_civil ? `있음 (접수번호: ${r.civil_receipt_number || '-'}, 기관: ${r.gov_platform_name || '-'})` : '없음(처음 접수)'}</div></div>
+          <div><span class="label">기존 민원(기관) 접수 여부</span><div class="value">${r.has_existing_civil ? `있음 · 접수번호: ${r.civil_receipt_number || '-'} · 기관: ${r.gov_platform_name || '-'} · 담당부서: ${r.gov_department || '-'} · 접수일: ${r.civil_receipt_date || '-'}` : '없음(처음 접수)'}</div></div>
+          <div><span class="label">동일 연락처의 다른 접수 건</span><div class="value">${dupIds.length ? '#' + dupIds.join(', #') + ' (중복 접수 가능성 확인 필요)' : '없음'}</div></div>
           <div><span class="label">담당 공무원</span><div class="value">${r.assigned_officer || '-'} ${r.officer_contact ? '· ' + r.officer_contact : ''}</div></div>
           <div><span class="label">최근 정부 응답</span><div class="value">${r.gov_latest_response || '-'}</div></div>
         </div>
