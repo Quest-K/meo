@@ -145,6 +145,32 @@
         </div>
 
         <div class="field">
+          <label>지역</label>
+          <div class="radio-row">
+            <label><input type="radio" name="regionMode" value="specific" checked> 특정 지역 있음</label>
+            <label><input type="radio" name="regionMode" value="na"> 지역무관</label>
+          </div>
+          <div id="regionBlock" style="margin-top:12px;">
+            <div class="field">
+              <label for="regionSido">시/도</label>
+              <select id="regionSido">
+                <option value="">선택해주세요</option>
+                <option>서울특별시</option><option>부산광역시</option><option>대구광역시</option>
+                <option>인천광역시</option><option>광주광역시</option><option>대전광역시</option>
+                <option>울산광역시</option><option>세종특별자치시</option><option>경기도</option>
+                <option>강원특별자치도</option><option>충청북도</option><option>충청남도</option>
+                <option>전북특별자치도</option><option>전라남도</option><option>경상북도</option>
+                <option>경상남도</option><option>제주특별자치도</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="regionDetail">시군구 / 동(읍·면)</label>
+              <input type="text" id="regionDetail" placeholder="예: 강남구 역삼동">
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
           <label>기존에 민원을 접수한 적이 있나요?</label>
           <div class="radio-row">
             <label><input type="radio" name="hasExisting" value="yes"> 있음</label>
@@ -221,6 +247,18 @@ document.querySelectorAll('input[name=hasExisting]').forEach(r=>{
   });
 });
 
+// 지역무관 선택 시 시/도, 상세지역 입력 숨김
+document.querySelectorAll('input[name=regionMode]').forEach(r=>{
+  r.addEventListener('change', e=>{
+    const isSpecific = e.target.value === 'specific';
+    document.getElementById('regionBlock').style.display = isSpecific ? 'block' : 'none';
+    document.getElementById('regionSido').required = isSpecific;
+    document.getElementById('regionDetail').required = isSpecific;
+  });
+});
+document.getElementById('regionSido').required = true;
+document.getElementById('regionDetail').required = true;
+
 function showMsg(el, text, type){
   el.textContent = text;
   el.className = 'msg show ' + type;
@@ -234,6 +272,7 @@ document.getElementById('reportForm').addEventListener('submit', async (e)=>{
 
   const hasExisting = document.querySelector('input[name=hasExisting]:checked').value === 'yes';
   const planType = document.querySelector('input[name=planType]:checked').value;
+  const regionNa = document.querySelector('input[name=regionMode]:checked').value === 'na';
 
   try{
     const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/submit_report`, {
@@ -252,7 +291,10 @@ document.getElementById('reportForm').addEventListener('submit', async (e)=>{
         p_plan_type: planType,
         p_has_existing_civil: hasExisting,
         p_civil_receipt_number: hasExisting ? document.getElementById('civilReceiptNumber').value : null,
-        p_gov_platform_name: hasExisting ? document.getElementById('govPlatformName').value : null
+        p_gov_platform_name: hasExisting ? document.getElementById('govPlatformName').value : null,
+        p_region_sido: regionNa ? null : document.getElementById('regionSido').value,
+        p_region_detail: regionNa ? null : document.getElementById('regionDetail').value,
+        p_region_na: regionNa
       })
     });
 
@@ -266,6 +308,9 @@ document.getElementById('reportForm').addEventListener('submit', async (e)=>{
     showMsg(msgEl, `접수 완료되었습니다. 조회번호는 ${reportId}번입니다. 무료 AI 분석 결과를 곧 안내드릴게요.`, 'success');
     document.getElementById('reportForm').reset();
     document.getElementById('existingBlock').classList.remove('show');
+    document.getElementById('regionBlock').style.display = 'block';
+    document.getElementById('regionSido').required = true;
+    document.getElementById('regionDetail').required = true;
   }catch(err){
     console.error(err);
     showMsg(msgEl, '접수 중 오류: ' + (err.message || JSON.stringify(err)), 'error');
