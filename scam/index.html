@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>온기(On-Gi) | 피싱 생존율 테스트</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+ 
+<!-- 1. 홈 화면 -->
+<div id="start-page" class="container">
+  <div class="brand-name">디지털 소도어스 : 온기</div>
+  <h1>나와 우리 부모님의<br>피싱 생존율 테스트</h1>
+  <p class="desc">더 교묘해진 디지털 범죄 세상,<br>과연 당신은 피싱으로부터 안전할까요?<br>실제 신고 사례를 바탕으로 재구성한<br>15가지 상황으로 테스트해 보세요.</p>
+  <button class="btn" onclick="startTest()">테스트 시작하기</button>
+  <p style="font-size:11.5px;color:var(--ink-soft);margin-top:14px;line-height:1.6;">
+    ※ 등장하는 기관명·번호·링크는 모두 가상이며,<br>실제 신고된 범죄 수법의 패턴만을 교육 목적으로 재구성했습니다.
+  </p>
+</div>
+ 
+<!-- 2. 문제 화면 -->
+<div id="question-page" class="container hidden">
+  <div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-label" id="progress-label">1 / 15</div>
+  </div>
+  <div id="question-content"></div>
+</div>
+ 
+<!-- 3. 결과 화면 (무료 + 프리미엄 통합) -->
+<div id="result-page" class="container hidden">
+  <div class="brand-name">테스트 결과</div>
+  <div class="ring-wrap">
+    <svg width="170" height="170" viewBox="0 0 170 170">
+      <circle cx="85" cy="85" r="74" fill="none" stroke="#EAE5DC" stroke-width="14"/>
+      <circle id="ring-fg" cx="85" cy="85" r="74" fill="none" stroke="#C08C73" stroke-width="14"
+        stroke-linecap="round" stroke-dasharray="465" stroke-dashoffset="465"
+        transform="rotate(-90 85 85)" style="transition:stroke-dashoffset 1s ease;"/>
+    </svg>
+    <div class="ring-label">
+      <div class="ring-percent" id="ring-percent">0%</div>
+      <div class="ring-percent-sub">예상 생존율</div>
+    </div>
+  </div>
+  <div id="grade-chip" class="grade-chip">분석 중</div>
+  <h1 id="result-title" style="font-size:21px;"></h1>
+  <p class="result-msg" id="result-msg"></p>
+ 
+  <!-- 무료: 일부 리뷰만 -->
+  <div class="review-list" id="review-list-free"></div>
+ 
+  <!-- 업셀 카드 (무료 사용자에게만 표시) -->
+  <div id="upsell-section">
+    <div class="upsell-card">
+      <span class="upsell-badge">PREMIUM</span>
+      <div class="upsell-title">내 약점 패턴을 정확히 알고 싶다면?</div>
+      <ul class="upsell-list">
+        <li>5가지 사기 패턴별 취약도 분석 (레이더 차트)</li>
+        <li>가장 위험한 패턴 1~2개 맞춤 행동가이드</li>
+        <li>15문항 전체 상세 리뷰</li>
+        <li>카카오톡 · 텔레그램 공유 카드 + PDF 저장</li>
+      </ul>
+      <div class="price-row">
+        <div class="price-option" id="price-basic" onclick="selectPlan('basic')">
+          <div class="pname">프리미엄</div>
+          <div class="pprice">1,900원</div>
+          <div class="pusdt">≈ 1.9 USDT</div>
+        </div>
+        <div class="price-option" id="price-plus" onclick="selectPlan('plus')">
+          <div class="pname">프리미엄 플러스</div>
+          <div class="pprice">3,900원</div>
+          <div class="pusdt">≈ 3.9 USDT</div>
+        </div>
+      </div>
+      <button class="btn btn-gold" style="margin-top:16px;" onclick="openPayModal()">선택한 리포트 보기</button>
+      <p class="pay-note">플러스는 부모님께 보낼 안내 메시지 템플릿과 다음 테마 무료 체험권이 추가로 포함돼요.</p>
+    </div>
+  </div>
+ 
+  <!-- 프리미엄 콘텐츠 (결제 후 표시) -->
+  <div id="premium-section" class="hidden">
+ 
+    <div class="section-title">📊 사기 패턴별 위험도</div>
+    <div class="radar-wrap" id="pattern-bars"></div>
+ 
+    <div id="weak-pattern-card"></div>
+ 
+    <div class="section-title">🛡️ 맞춤 행동가이드</div>
+    <div class="guide-box" id="guide-box"></div>
+ 
+    <div class="section-title">📝 15문항 전체 리뷰</div>
+    <div class="review-list" id="review-list-full"></div>
+ 
+    <div id="plus-only-section" class="hidden">
+      <div class="section-title">💌 부모님께 보내는 안내 메시지</div>
+      <div class="msg-template-box" id="msg-template"></div>
+      <button class="btn btn-select" style="margin-bottom:22px;" onclick="copyTemplate()">메시지 복사하기</button>
+    </div>
+ 
+    <div class="section-title">📤 결과 공유하기</div>
+    <div class="share-row">
+      <button class="btn-select" onclick="shareKakao()">카카오톡</button>
+      <button class="btn-select" onclick="shareTelegram()">텔레그램</button>
+    </div>
+    <div class="share-row">
+      <button class="btn-select" onclick="downloadImage()">이미지 저장</button>
+      <button class="btn-select" onclick="downloadPdf()">PDF 저장</button>
+    </div>
+  </div>
+ 
+  <button class="btn btn-primary" style="margin-top:8px;" onclick="restartTest()">다시 테스트하기</button>
+  <p style="font-size:11.5px;color:var(--ink-soft);margin-top:14px;line-height:1.6;">
+    부모님께도 이 테스트를 보내보세요.<br>가족의 디지털 안전, 온기에서 함께 지킵니다.
+  </p>
+</div>
+ 
+<!-- 결제 모달 (시뮬레이션) -->
+<div id="pay-modal" class="hidden" style="position:fixed;inset:0;background:rgba(74,62,61,.5);align-items:center;justify-content:center;z-index:100;padding:20px;">
+  <div style="background:#fff;border-radius:20px;padding:28px 22px;max-width:380px;width:100%;text-align:left;">
+    <div style="font-size:12px;color:var(--accent-deep);font-weight:700;letter-spacing:1px;margin-bottom:6px;">결제 수단 선택</div>
+    <div id="pay-modal-plan" style="font-size:18px;font-weight:800;margin-bottom:18px;"></div>
+ 
+    <div onclick="selectPayMethod('card')" id="pay-card" class="price-option" style="margin-bottom:10px;text-align:left;display:flex;justify-content:space-between;align-items:center;">
+      <div><div class="pname" style="margin-bottom:2px;">신용/체크카드 · 카카오페이</div><div style="font-size:11px;color:var(--ink-soft);">PG사 (토스페이먼츠 등) 연동</div></div>
+      <div id="pay-amount-krw" style="font-weight:800;"></div>
+    </div>
+    <div onclick="selectPayMethod('usdt')" id="pay-usdt" class="price-option" style="text-align:left;display:flex;justify-content:space-between;align-items:center;">
+      <div><div class="pname" style="margin-bottom:2px;">USDT (TRC-20)</div><div style="font-size:11px;color:var(--ink-soft);">암호화폐 결제 게이트웨이 연동</div></div>
+      <div id="pay-amount-usdt" style="font-weight:800;"></div>
+    </div>
+ 
+    <div id="pay-dev-note" style="margin-top:16px;font-size:11.5px;color:var(--ink-soft);line-height:1.6;background:var(--chat);padding:10px 12px;border-radius:10px;">
+      ⚙️ 개발 노트: 이 모달은 결제 흐름 프로토타입입니다. 실제 서비스에서는 이 지점에 PG사(카드/카카오페이) 또는 암호화폐 게이트웨이(USDT) API 키를 연동합니다.
+    </div>
+ 
+    <button class="btn btn-gold" style="margin-top:18px;" onclick="confirmPayment()">결제 진행 (시뮬레이션)</button>
+    <button class="btn btn-outline" style="margin-top:10px;" onclick="closePayModal()">취소</button>
+  </div>
+</div>
+ 
+<!-- 캡처용 공유카드 (화면엔 안 보이고 캡처될 때만 사용) -->
+<div id="share-card-capture">
+  <div class="sc-brand">디지털 소도어스 · 온기</div>
+  <div class="sc-percent" id="sc-percent">0%</div>
+  <div class="sc-sub">예상 피싱 생존율</div>
+  <div class="sc-grade" id="sc-grade">등급</div>
+  <div class="sc-copy" id="sc-copy"></div>
+  <div class="sc-foot">나와 우리 부모님의 피싱 생존율 테스트</div>
+</div>
+ 
+<!-- 스크립트 로드 순서: quiz -> payment -> report -->
+<script src="quiz.js"></script>
+<script src="payment.js"></script>
+<script src="report.js"></script>
+</body>
+</html>
