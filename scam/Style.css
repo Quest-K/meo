@@ -1,0 +1,523 @@
+:root{
+  --bg:#FDFBF7;
+  --card:#FFFFFF;
+  --ink:#4A3E3D;
+  --ink-soft:#8A7E7C;
+  --line:#EAE5DC;
+  --chat:#F4F1EA;
+  --accent:#C08C73;
+  --accent-deep:#A9714F;
+  --danger:#E0654F;
+  --safe:#5B8C72;
+  --warn:#D7A23A;
+  --gold:#D7A23A;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+  padding:24px 0;
+}
+.container{
+  width:100%;
+  max-width:420px;
+  background:var(--card);
+  padding:40px 24px;
+  box-shadow:0 10px 30px rgba(74,62,61,.06);
+  border-radius:24px;
+  text-align:center;
+  box-sizing:border-box;
+  position:relative;
+}
+.brand-name{
+  font-size:13px;
+  color:var(--accent-deep);
+  font-weight:700;
+  letter-spacing:2.5px;
+  margin-bottom:8px;
+}
+h1{
+  font-size:25px;
+  font-weight:700;
+  line-height:1.4;
+  margin:0 0 16px 0;
+}
+.desc{
+  font-size:14.5px;
+  color:var(--ink-soft);
+  line-height:1.65;
+  margin-bottom:32px;
+}
+
+/* 진행도 */
+.progress-wrap{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:28px;
+}
+.progress-track{
+  flex:1;
+  height:6px;
+  background:var(--line);
+  border-radius:99px;
+  overflow:hidden;
+}
+.progress-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent-deep));
+  border-radius:99px;
+  transition:width .35s ease;
+}
+.progress-label{
+  font-size:12px;
+  color:var(--ink-soft);
+  font-weight:600;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+
+.qtag{
+  font-size:12.5px;
+  color:var(--accent-deep);
+  font-weight:700;
+  letter-spacing:.5px;
+  margin-bottom:10px;
+}
+.qtitle{
+  font-size:21px;
+  font-weight:700;
+  line-height:1.45;
+  margin:0 0 22px 0;
+  text-align:left;
+}
+
+/* 메시지 시뮬레이션 */
+.chat-box{
+  background:var(--chat);
+  border-radius:16px;
+  padding:16px;
+  text-align:left;
+  margin-bottom:22px;
+  font-size:14px;
+  line-height:1.55;
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.03);
+  position:relative;
+}
+.chat-tag{
+  font-size:11px;
+  color:var(--danger);
+  font-weight:700;
+  margin-bottom:6px;
+  letter-spacing:.3px;
+}
+.chat-link{
+  color:#2980B9;
+  text-decoration:underline;
+  word-break:break-all;
+}
+.chat-meta{
+  margin-top:8px;
+  font-size:11px;
+  color:var(--ink-soft);
+}
+.call-box{
+  background:var(--chat);
+  border-radius:16px;
+  padding:18px 16px;
+  text-align:left;
+  margin-bottom:22px;
+  font-size:14px;
+  line-height:1.6;
+}
+.call-box .num{
+  font-weight:700;
+  color:var(--ink);
+}
+
+/* 선택지 */
+.options{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.btn{
+  background:var(--ink);
+  color:#fff;
+  border:none;
+  padding:16px 18px;
+  font-size:15px;
+  font-weight:600;
+  border-radius:12px;
+  cursor:pointer;
+  width:100%;
+  transition:background .2s, transform .1s;
+  text-align:left;
+  line-height:1.45;
+}
+.btn:hover{ background:#635352; }
+.btn:active{ transform:scale(.98); }
+.btn-select{
+  background:#FFFFFF;
+  color:var(--ink);
+  border:2px solid var(--line);
+}
+.btn-select:hover{
+  background:var(--bg);
+  border-color:var(--accent);
+}
+.btn-primary{
+  background:var(--ink);
+  color:#fff;
+  border:none;
+  text-align:center;
+}
+.btn:focus-visible, .btn-select:focus-visible{
+  outline:3px solid var(--accent);
+  outline-offset:2px;
+}
+.btn-gold{
+  background:linear-gradient(90deg,#D7A23A,#C08C73);
+  color:#fff;
+  border:none;
+  text-align:center;
+}
+.btn-outline{
+  background:#fff;
+  color:var(--ink);
+  border:2px solid var(--ink);
+  text-align:center;
+}
+
+.hidden{ display:none; }
+
+/* 결과 페이지 */
+.ring-wrap{
+  position:relative;
+  width:170px;
+  height:170px;
+  margin:8px auto 18px auto;
+}
+.ring-label{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+.ring-percent{
+  font-size:38px;
+  font-weight:800;
+  line-height:1;
+}
+.ring-percent-sub{
+  font-size:12px;
+  color:var(--ink-soft);
+  margin-top:4px;
+  font-weight:600;
+}
+.grade-chip{
+  display:inline-block;
+  padding:6px 14px;
+  border-radius:99px;
+  font-size:13px;
+  font-weight:700;
+  margin-bottom:18px;
+  letter-spacing:.3px;
+}
+.result-msg{
+  font-size:14.5px;
+  color:var(--ink-soft);
+  line-height:1.7;
+  margin-bottom:24px;
+  text-align:left;
+}
+.review-list{
+  text-align:left;
+  margin-bottom:24px;
+  border-top:1px solid var(--line);
+}
+.review-item{
+  padding:14px 0;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+}
+.review-mark{
+  flex-shrink:0;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:13px;
+  font-weight:800;
+  color:#fff;
+  margin-top:1px;
+}
+.mark-good{ background:var(--safe); }
+.mark-bad{ background:var(--danger); }
+.review-text{
+  font-size:13.5px;
+  line-height:1.55;
+  color:var(--ink);
+}
+.review-q{
+  font-size:11.5px;
+  color:var(--ink-soft);
+  font-weight:600;
+  margin-bottom:2px;
+}
+.locked-row{
+  padding:12px 0;
+  text-align:center;
+  font-size:12.5px;
+  color:var(--ink-soft);
+  border-bottom:1px solid var(--line);
+}
+
+.share-row{
+  display:flex;
+  gap:10px;
+  margin-bottom:12px;
+}
+.share-row .btn-select{
+  flex:1;
+  text-align:center;
+  font-size:13px;
+  padding:13px 8px;
+}
+
+/* 업셀 카드 */
+.upsell-card{
+  border:2px solid var(--accent);
+  border-radius:18px;
+  padding:22px 18px;
+  margin:8px 0 24px 0;
+  text-align:left;
+  background:linear-gradient(135deg,#FFFDF9,#FBF3EA);
+}
+.upsell-badge{
+  display:inline-block;
+  background:var(--ink);
+  color:#fff;
+  font-size:11px;
+  font-weight:700;
+  padding:3px 10px;
+  border-radius:99px;
+  margin-bottom:10px;
+  letter-spacing:.3px;
+}
+.upsell-title{
+  font-size:17px;
+  font-weight:800;
+  margin-bottom:8px;
+  line-height:1.4;
+}
+.upsell-list{
+  font-size:13.5px;
+  color:var(--ink);
+  line-height:1.9;
+  margin:0 0 18px 0;
+  padding-left:0;
+  list-style:none;
+}
+.upsell-list li{
+  padding-left:22px;
+  position:relative;
+}
+.upsell-list li::before{
+  content:'✓';
+  position:absolute;
+  left:0;
+  color:var(--safe);
+  font-weight:800;
+}
+.price-row{
+  display:flex;
+  gap:10px;
+}
+.price-option{
+  flex:1;
+  border:2px solid var(--line);
+  border-radius:14px;
+  padding:14px 10px;
+  text-align:center;
+  cursor:pointer;
+  transition:.2s;
+}
+.price-option:hover, .price-option.selected{
+  border-color:var(--accent);
+  background:#FFF9F2;
+}
+.price-option .pname{
+  font-size:12.5px;
+  color:var(--ink-soft);
+  font-weight:700;
+  margin-bottom:4px;
+}
+.price-option .pprice{
+  font-size:18px;
+  font-weight:800;
+}
+.price-option .pusdt{
+  font-size:11px;
+  color:var(--accent-deep);
+  margin-top:2px;
+  font-weight:600;
+}
+
+/* 레이더 차트 */
+.radar-wrap{
+  margin:6px 0 22px 0;
+}
+.pattern-bar-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:12px;
+}
+.pattern-bar-label{
+  width:88px;
+  flex-shrink:0;
+  font-size:12px;
+  font-weight:700;
+  text-align:left;
+  color:var(--ink);
+}
+.pattern-bar-track{
+  flex:1;
+  height:10px;
+  background:var(--line);
+  border-radius:99px;
+  overflow:hidden;
+}
+.pattern-bar-fill{
+  height:100%;
+  border-radius:99px;
+  transition:width 1s ease;
+}
+.pattern-bar-pct{
+  width:38px;
+  flex-shrink:0;
+  font-size:12px;
+  font-weight:700;
+  text-align:right;
+  color:var(--ink-soft);
+}
+
+.weak-card{
+  background:#FFF4EE;
+  border-left:4px solid var(--danger);
+  border-radius:12px;
+  padding:16px;
+  text-align:left;
+  margin-bottom:22px;
+}
+.weak-card-tag{
+  font-size:11.5px;
+  color:var(--danger);
+  font-weight:800;
+  margin-bottom:6px;
+}
+.weak-card-text{
+  font-size:13.5px;
+  line-height:1.6;
+  color:var(--ink);
+}
+
+.section-title{
+  font-size:15px;
+  font-weight:800;
+  text-align:left;
+  margin:28px 0 14px 0;
+  padding-top:18px;
+  border-top:1px solid var(--line);
+}
+
+.guide-box{
+  background:var(--chat);
+  border-radius:14px;
+  padding:16px;
+  text-align:left;
+  font-size:13.5px;
+  line-height:1.7;
+  margin-bottom:24px;
+}
+
+.msg-template-box{
+  background:var(--chat);
+  border-radius:14px;
+  padding:16px;
+  text-align:left;
+  font-size:13.5px;
+  line-height:1.7;
+  margin-bottom:14px;
+  white-space:pre-wrap;
+}
+
+.pay-note{
+  font-size:11.5px;
+  color:var(--ink-soft);
+  line-height:1.6;
+  margin-top:10px;
+}
+
+/* 캡처용 공유카드 */
+#share-card-capture{
+  position:fixed;
+  top:-9999px;
+  left:-9999px;
+  width:360px;
+  background:linear-gradient(135deg,#4A3E3D,#2E2524);
+  color:#fff;
+  padding:36px 28px;
+  border-radius:0;
+  text-align:center;
+  font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+}
+#share-card-capture .sc-brand{
+  font-size:12px;
+  letter-spacing:2px;
+  color:#D7A23A;
+  font-weight:700;
+  margin-bottom:18px;
+}
+#share-card-capture .sc-percent{
+  font-size:52px;
+  font-weight:800;
+}
+#share-card-capture .sc-sub{
+  font-size:13px;
+  color:#C9BDBC;
+  margin-bottom:18px;
+}
+#share-card-capture .sc-grade{
+  display:inline-block;
+  background:rgba(255,255,255,.12);
+  padding:6px 16px;
+  border-radius:99px;
+  font-size:13px;
+  font-weight:700;
+  margin-bottom:18px;
+}
+#share-card-capture .sc-copy{
+  font-size:14px;
+  line-height:1.6;
+  color:#EDE6E1;
+  margin-bottom:6px;
+}
+#share-card-capture .sc-foot{
+  font-size:11px;
+  color:#9C8E8C;
+  margin-top:18px;
+}
