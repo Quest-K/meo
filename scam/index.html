@@ -74,7 +74,7 @@
       <div class="price-row">
         <div class="price-option selected" id="price-single">
           <div class="pname">프리미엄 리포트</div>
-          <div class="pprice">1,800원</div>
+          <div class="pprice">1,800원~</div>
         </div>
       </div>
       <button class="btn btn-gold" style="margin-top:16px;" onclick="openPayModal()">리포트 보기</button>
@@ -123,10 +123,14 @@
     <div style="font-size:12px;color:var(--accent-deep);font-weight:700;letter-spacing:1px;margin-bottom:6px;">결제 수단 선택</div>
     <div id="pay-modal-plan" style="font-size:18px;font-weight:800;margin-bottom:18px;"></div>
 
-    <!-- USDT 옵션 블록 삭제, 카드/카카오페이 단일 옵션만 유지 -->
-    <div id="pay-card" class="price-option selected" style="margin-bottom:10px;text-align:left;display:flex;justify-content:space-between;align-items:center;">
-      <div><div class="pname" style="margin-bottom:2px;">신용/체크카드 · 카카오페이</div><div style="font-size:11px;color:var(--ink-soft);">PG사 (토스페이먼츠 등) 연동</div></div>
-      <div id="pay-amount-krw" style="font-weight:800;"></div>
+    <!-- 결제 수단별 가격 차등: 카드 1,800원 / 실시간 계좌이체 1,500원 -->
+    <div onclick="selectPayMethod('card')" id="pay-card" class="price-option selected" style="margin-bottom:10px;text-align:left;display:flex;justify-content:space-between;align-items:center;">
+      <div><div class="pname" style="margin-bottom:2px;">신용/체크카드 · 카카오페이</div><div style="font-size:11px;color:var(--ink-soft);">PG사 카드 결제</div></div>
+      <div id="pay-amount-card" style="font-weight:800;"></div>
+    </div>
+    <div onclick="selectPayMethod('transfer')" id="pay-transfer" class="price-option" style="text-align:left;display:flex;justify-content:space-between;align-items:center;">
+      <div><div class="pname" style="margin-bottom:2px;">실시간 계좌이체</div><div style="font-size:11px;color:var(--ink-soft);">카드 수수료가 없어 더 저렴해요</div></div>
+      <div id="pay-amount-transfer" style="font-weight:800;"></div>
     </div>
 
     <div id="pay-dev-note" style="margin-top:16px;font-size:11.5px;color:var(--ink-soft);line-height:1.6;background:var(--chat);padding:10px 12px;border-radius:10px;">
