@@ -19,7 +19,7 @@ function copyTemplate(){
   });
 }
 
-/* ── 공유 기능 ── */
+/* ── 공유 기능 (카카오톡·텔레그램 제거, 이미지·PDF 저장만 유지) ── */
 function buildShareCard(){
   document.getElementById('sc-percent').textContent = resultPercent + '%';
   document.getElementById('sc-grade').textContent = resultGrade + ' 등급';
@@ -27,18 +27,6 @@ function buildShareCard(){
   document.getElementById('sc-copy').textContent = weakLabel
     ? `가장 취약한 패턴: ${weakLabel}`
     : '나의 피싱 생존율을 확인해보세요';
-}
-
-function shareKakao(){
-  // ⚙️ 실제 연동 지점: 카카오 디벨로퍼스에서 JavaScript 키 발급 후
-  // Kakao.init('YOUR_JS_KEY') 및 Kakao.Share.sendDefault({...}) 호출
-  alert('카카오톡 공유 기능은 카카오 디벨로퍼스 앱 키 연동이 필요해요. (개발 연동 예정 지점)');
-}
-
-function shareTelegram(){
-  const text = encodeURIComponent(`나의 피싱 생존율은 ${resultPercent}%! (${resultGrade} 등급)\n온기에서 직접 테스트 해보세요.`);
-  const url = encodeURIComponent(location.href);
-  window.open(`https://t.me/share/url?url=${url}&text=${text}`, '_blank');
 }
 
 function downloadImage(){
