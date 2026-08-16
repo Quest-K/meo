@@ -32,9 +32,11 @@ function buildShareCard(){
 function downloadImage(){
   buildShareCard();
   const el = document.getElementById('share-card-capture');
-  el.style.position = 'fixed'; el.style.top = '0'; el.style.left = '0'; el.style.zIndex = '-1'; el.style.opacity = '0';
+  // opacity:0으로 두면 html2canvas가 내용까지 투명하게 캡처해 흰 이미지가 나옵니다.
+  // zIndex만 뒤로 보내면 화면엔 안 보이면서 캡처는 정상적으로 됩니다.
+  el.style.position = 'fixed'; el.style.top = '0'; el.style.left = '0'; el.style.zIndex = '-1';
   html2canvas(el, { scale: 2 }).then(canvas => {
-    el.style.top = '-9999px'; el.style.left = '-9999px'; el.style.opacity = '1';
+    el.style.top = '-9999px'; el.style.left = '-9999px';
     const link = document.createElement('a');
     link.download = 'ongi-result.png';
     link.href = canvas.toDataURL('image/png');
@@ -45,9 +47,9 @@ function downloadImage(){
 function downloadPdf(){
   buildShareCard();
   const el = document.getElementById('share-card-capture');
-  el.style.position = 'fixed'; el.style.top = '0'; el.style.left = '0'; el.style.zIndex = '-1'; el.style.opacity = '0';
+  el.style.position = 'fixed'; el.style.top = '0'; el.style.left = '0'; el.style.zIndex = '-1';
   html2canvas(el, { scale: 2 }).then(canvas => {
-    el.style.top = '-9999px'; el.style.left = '-9999px'; el.style.opacity = '1';
+    el.style.top = '-9999px'; el.style.left = '-9999px';
     const { jsPDF } = window.jspdf;
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF({ unit: 'px', format: [canvas.width/2, canvas.height/2] });
