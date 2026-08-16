@@ -32,11 +32,10 @@ function buildShareCard(){
 function downloadImage(){
   buildShareCard();
   const el = document.getElementById('share-card-capture');
-  // opacity:0으로 두면 html2canvas가 내용까지 투명하게 캡처해 흰 이미지가 나옵니다.
-  // zIndex만 뒤로 보내면 화면엔 안 보이면서 캡처는 정상적으로 됩니다.
-  el.style.position = 'fixed'; el.style.top = '0'; el.style.left = '0'; el.style.zIndex = '-1';
+  // 위치를 옮기지 않고, 화면 밖(-9999px)에 고정된 상태 그대로 캡처합니다.
+  // (캡처 직전에 위치를 옮기는 방식은 브라우저에 따라 레이아웃 반영 전에
+  //  캡처가 시작되어 빈 화면이 찍히는 경우가 있었습니다.)
   html2canvas(el, { scale: 2 }).then(canvas => {
-    el.style.top = '-9999px'; el.style.left = '-9999px';
     const link = document.createElement('a');
     link.download = 'ongi-result.png';
     link.href = canvas.toDataURL('image/png');
@@ -47,9 +46,7 @@ function downloadImage(){
 function downloadPdf(){
   buildShareCard();
   const el = document.getElementById('share-card-capture');
-  el.style.position = 'fixed'; el.style.top = '0'; el.style.left = '0'; el.style.zIndex = '-1';
   html2canvas(el, { scale: 2 }).then(canvas => {
-    el.style.top = '-9999px'; el.style.left = '-9999px';
     const { jsPDF } = window.jspdf;
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF({ unit: 'px', format: [canvas.width/2, canvas.height/2] });
